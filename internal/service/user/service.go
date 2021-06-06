@@ -3,22 +3,25 @@ package user
 import (
 	"github.com/jinzhu/gorm"
 
+	"github.com/gomvn/gomvn/internal/config"
 	"github.com/gomvn/gomvn/internal/entity"
 )
 
 const (
 	TokenLength = 36
-	BcryptCost = 12
+	BcryptCost  = 12
 )
 
-func New(db *gorm.DB) *Service {
+func New(db *gorm.DB, conf *config.App) *Service {
 	return &Service{
-		db: db,
+		db:   db,
+		conf: conf,
 	}
 }
 
 type Service struct {
-	db *gorm.DB
+	db   *gorm.DB
+	conf *config.App
 }
 
 func (s *Service) GetAll(limit, offset uint64) ([]entity.User, uint64, error) {
@@ -48,4 +51,8 @@ func (s *Service) GetPaths(user *entity.User) ([]entity.Path, error) {
 		return nil, err
 	}
 	return paths, nil
+}
+
+func (s *Service) GetDefaultPermissions() *config.Permissions {
+	return &s.conf.Permissions
 }

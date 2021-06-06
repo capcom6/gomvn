@@ -14,6 +14,14 @@ import (
 
 func NewRepoAuth(us *user.Service, ps *service.PathService, needsDeploy bool) func(*fiber.Ctx) {
 	return basicauth.New(basicauth.Config{
+		Filter: func(ctx *fiber.Ctx) bool {
+			permissions := us.GetDefaultPermissions()
+			if needsDeploy {
+				return permissions.Deploy
+			} else {
+				return permissions.View
+			}
+		},
 		Authorizer: func(c *fiber.Ctx, name string, token string) bool {
 			u, err := us.GetByName(name)
 			if err != nil {

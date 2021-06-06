@@ -7,9 +7,10 @@ import (
 )
 
 type App struct {
-	Name       string
-	Server     *Server
-	Repository []string
+	Name        string
+	Server      *Server
+	Repository  []string
+	Permissions Permissions
 }
 
 func NewAppConfig(file string) (*App, error) {
