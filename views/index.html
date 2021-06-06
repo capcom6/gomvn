@@ -1,21 +1,46 @@
-<html>
+<html lang="en">
 <head>
-    <title>GoMVN - {{.Name}}</title>
+    <title>{{ .Name }}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
+          integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+
     <style>
-        .dir {
-            font-weight: bold;
-            font-family: monospace;
+        .clickable {
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-<h1>{{.Name}}</h1>
-{{range $k, $v := .Repositories}}
-    <ul>
-        {{range $v}}
-        <li><a href="{{ $k }}/{{ .GetPath }}" class="dir">{{ .Group }}:{{ .Artifact }}:{{ .Version }}</a>, last modified {{ .Modified }}</li>
-        {{end}}
-    </ul>
-{{end}}
+    <div class="container">
+        <br>
+        <h2>{{ .Name }}</h2>
+        <br>
+        {{ range $k, $v := .Repositories }}
+            <hr>
+            <h3>{{ $k }}</h3>
+            <table class="table table-hover">
+                <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Group</th>
+                    <th>Artifact</th>
+                    <th>Version</th>
+                    <th>Last Modified</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {{ range $v }}
+                        <tr class="clickable" onclick="window.location='{{ $k }}/{{ .GetPath }}'">
+                            <td><code>{{ .Group }}:{{ .Artifact }}:{{ .Version }}</code></td>
+                            <td>{{ .Group }}</td>
+                            <td>{{ .Artifact }}</td>
+                            <td>{{ .Version }}</td>
+                            <td>{{ .GetLastModified }}</td>
+                        </tr>
+                    {{ end }}
+                </tbody>
+            </table>
+        {{ end }}
+    </div>
 </body>
 </html>
