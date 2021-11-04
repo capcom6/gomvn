@@ -28,5 +28,9 @@ COPY --from=builder /build/output/app /app/app
 COPY config.yml /app/config.yml
 COPY views /app/views
 
+# Expose port and declare volume
+EXPOSE 8080
+VOLUME /app/data
+
 # Run the binary
 ENTRYPOINT ["/app/app"]
