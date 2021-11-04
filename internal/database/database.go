@@ -23,7 +23,8 @@ func New() (*gorm.DB, error) {
 
 	// db.LogMode(true)
 	db.AutoMigrate(&entity.User{}, &entity.Path{})
-	db.Model(&entity.Path{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
+	// ALTER TABLE doesn't work for SQLite
+	// db.Model(&entity.Path{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 
 	return db, nil
 }
