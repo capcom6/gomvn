@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"github.com/gomvn/gomvn/internal/entity"
 )

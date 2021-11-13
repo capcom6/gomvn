@@ -14,3 +14,6 @@ docker-build:
 
 docker-run: docker-build
 	docker run -it -p 8080:8080 gomvn/gomvn
+
+clean:
+	rm -r output

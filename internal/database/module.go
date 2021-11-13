@@ -3,8 +3,8 @@ package database
 import (
 	"context"
 
-	"github.com/jinzhu/gorm"
 	"go.uber.org/fx"
+	"gorm.io/gorm"
 )
 
 var Module = fx.Options(
@@ -15,7 +15,7 @@ var Module = fx.Options(
 func register(lifecycle fx.Lifecycle, db *gorm.DB) {
 	lifecycle.Append(fx.Hook{
 		OnStop: func(ctx context.Context) error {
-			return db.Close()
+			return nil //db.Close()
 		},
 	})
 }

@@ -5,7 +5,7 @@ import (
 )
 
 type Path struct {
-	UserID    uint      `gorm:"primary_key;auto_increment:false;not null"`
+	UserID    uint      `gorm:"primary_key;auto_increment:false;not null;"`
 	Path      string    `gorm:"primary_key;size:255;not null"`
 	Deploy    bool      `gorm:"not null"`
 	CreatedAt time.Time `gorm:"not null"`

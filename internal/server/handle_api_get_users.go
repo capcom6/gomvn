@@ -9,8 +9,8 @@ import (
 )
 
 func (s *Server) handleApiGetUsers(c *fiber.Ctx) {
-	limit := getQueryUint64(c, "limit", 50)
-	offset := getQueryUint64(c, "offset", 0)
+	limit := getQueryInt(c, "limit", 50)
+	offset := getQueryInt(c, "offset", 0)
 
 	users, count, err := s.us.GetAll(limit, offset)
 	if err != nil {
@@ -52,7 +52,7 @@ func mapToApiGetUsersPathItem(paths []entity.Path) []apiGetUsersPathItem {
 }
 
 type apiGetUsersResponse struct {
-	Total uint64            `json:"total"`
+	Total int64             `json:"total"`
 	Items []apiGetUsersItem `json:"items"`
 }
 

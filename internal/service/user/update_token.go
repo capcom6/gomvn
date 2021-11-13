@@ -3,9 +3,9 @@ package user
 import (
 	"time"
 
-	"github.com/jinzhu/gorm"
 	gonanoid "github.com/matoous/go-nanoid"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 
 	"github.com/gomvn/gomvn/internal/entity"
 )
@@ -25,7 +25,6 @@ func (s *Service) UpdateToken(id uint) (*entity.User, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-
 
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		return tx.Model(&user).
