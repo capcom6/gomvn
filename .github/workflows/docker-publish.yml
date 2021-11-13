@@ -2,7 +2,8 @@ name: Docker
 
 on:
   push:
-    branches: [ master ]
+    tags:
+      - 'v*'
 
 jobs:
   build:
@@ -15,6 +16,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: capcom6/gomvn
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
       - name: Log into Docker Hub
         uses: docker/login-action@v1
         with:
@@ -25,4 +37,5 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ruscalworld/gomvn:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
