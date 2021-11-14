@@ -11,6 +11,7 @@ type App struct {
 	Server      *Server
 	Repository  []string
 	Permissions Permissions
+	Debug       bool
 }
 
 func NewAppConfig(file string) (*App, error) {
