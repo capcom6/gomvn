@@ -12,5 +12,5 @@ type User struct {
 	CreatedAt time.Time `gorm:"not null"`
 	UpdatedAt time.Time `gorm:"not null"`
 
-	Paths []Path
+	Paths []Path `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:CASCADE;"`
 }

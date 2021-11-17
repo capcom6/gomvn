@@ -1,11 +1,11 @@
 package user
 
 import (
-	"github.com/jinzhu/gorm"
-	"github.com/matoous/go-nanoid"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 
 	"github.com/gomvn/gomvn/internal/entity"
+	gonanoid "github.com/matoous/go-nanoid"
 )
 
 func (s *Service) Create(name string, api bool, deploy bool, paths []string) (*entity.User, string, error) {

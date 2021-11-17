@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"github.com/gomvn/gomvn/internal/config"
 	"github.com/gomvn/gomvn/internal/entity"
@@ -24,12 +24,12 @@ type Service struct {
 	conf *config.App
 }
 
-func (s *Service) GetAll(limit, offset uint64) ([]entity.User, uint64, error) {
+func (s *Service) GetAll(limit, offset int) ([]entity.User, int64, error) {
 	var users []entity.User
 	if err := s.db.Limit(limit).Offset(offset).Preload("Paths").Find(&users).Error; err != nil {
 		return nil, 0, err
 	}
-	var count uint64
+	var count int64
 	if err := s.db.Model(&entity.User{}).Count(&count).Error; err != nil {
 		return nil, 0, err
 	}

@@ -3,13 +3,13 @@ package user
 import (
 	"log"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"github.com/gomvn/gomvn/internal/entity"
 )
 
 func Initialize(db *gorm.DB, us *Service) error {
-	var count int
+	var count int64
 	db.Model(&entity.User{}).Count(&count)
 
 	if count == 0 {
