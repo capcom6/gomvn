@@ -3,22 +3,21 @@ package server
 import (
 	"time"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/gomvn/gomvn/internal/entity"
 )
 
-func (s *Server) handleApiGetUsers(c *fiber.Ctx) {
+func (s *Server) handleApiGetUsers(c *fiber.Ctx) error {
 	limit := getQueryInt(c, "limit", 50)
 	offset := getQueryInt(c, "offset", 0)
 
 	users, count, err := s.us.GetAll(limit, offset)
 	if err != nil {
-		c.Status(fiber.StatusInternalServerError).SendString(err.Error())
-		return
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	c.JSON(&apiGetUsersResponse{
+	return c.JSON(&apiGetUsersResponse{
 		Total: count,
 		Items: mapToApiGetUsersItem(users),
 	})

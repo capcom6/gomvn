@@ -17,3 +17,7 @@ docker-run: docker-build
 
 clean:
 	rm -r output
+
+.PHONY: run
+run:
+	go run .
