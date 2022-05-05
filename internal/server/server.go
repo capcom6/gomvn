@@ -39,13 +39,7 @@ func New(conf *config.App, ps *service.PathService, storage *service.Storage, us
 		rs:      rs,
 	}
 
-	api := app.Group("/api")
-	api.Use(middleware.NewApiAuth(us))
-	api.Get("/users", server.handleApiGetUsers)
-	api.Post("/users", server.handleApiPostUsers)
-	api.Put("/users/:id", server.handleApiPutUsers)
-	api.Delete("/users/:id", server.handleApiDeleteUsers)
-	api.Get("/users/:id/refresh", server.handleApiGetUsersRefresh)
+	registerApi(app, us, server)
 
 	app.Put("/*", middleware.NewRepoAuth(us, ps, true), server.handlePut)
 	app.Get("/", server.handleIndex)
@@ -54,8 +48,21 @@ func New(conf *config.App, ps *service.PathService, storage *service.Storage, us
 	app.Static("/", storage.GetRoot(), fiber.Static{
 		Browse: true,
 	})
+	app.Use(func(c *fiber.Ctx) error {
+		return c.SendStatus(fiber.StatusNotFound)
+	})
 
 	return server
+}
+
+func registerApi(app *fiber.App, us *user.Service, server *Server) {
+	api := app.Group("/api")
+	api.Use(middleware.NewApiAuth(us))
+	api.Get("/users", server.handleApiGetUsers)
+	api.Post("/users", server.handleApiPostUsers)
+	api.Put("/users/:id", server.handleApiPutUsers)
+	api.Delete("/users/:id", server.handleApiDeleteUsers)
+	api.Get("/users/:id/refresh", server.handleApiGetUsersRefresh)
 }
 
 type Server struct {
