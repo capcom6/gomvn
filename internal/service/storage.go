@@ -50,7 +50,7 @@ func (s *Storage) WriteFromRequest(c *fiber.Ctx, path string) error {
 
 	w := bufio.NewWriter(f)
 
-	if _, err := c.Request().WriteTo(w); err != nil {
+	if err := c.Request().BodyWriteTo(w); err != nil {
 		return err
 	}
 	if err := w.Flush(); err != nil {
