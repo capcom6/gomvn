@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 )
 
 func NewStorage() *Storage {
@@ -38,7 +38,7 @@ func (s *Storage) FileExists(path string) bool {
 func (s *Storage) WriteFromRequest(c *fiber.Ctx, path string) error {
 	file := s.File(path)
 	fdir := dir(file)
-	if err := os.MkdirAll(fdir, os.ModeDir); err != nil {
+	if err := os.MkdirAll(fdir, 0750); err != nil {
 		return err
 	}
 
@@ -49,7 +49,8 @@ func (s *Storage) WriteFromRequest(c *fiber.Ctx, path string) error {
 	defer f.Close()
 
 	w := bufio.NewWriter(f)
-	if err := c.Fasthttp.Request.BodyWriteTo(w); err != nil {
+
+	if err := c.Request().BodyWriteTo(w); err != nil {
 		return err
 	}
 	if err := w.Flush(); err != nil {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/gomvn/gomvn/internal/config"
 )
@@ -50,7 +50,7 @@ func (s *PathService) ParsePathParts(c *fiber.Ctx) (string, string, string, erro
 	if err != nil {
 		return "", "", "", err
 	}
-	parts := strings.Split(path,"/")
+	parts := strings.Split(path, "/")
 	last := len(parts) - 1
 	return parts[0], strings.Join(parts[1:last-1], "/"), parts[last], nil
 }

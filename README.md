@@ -14,7 +14,7 @@ For better accesibility, map these docker volumes:
 | Path              | Description |
 | ----------------- | ----------- |
 | `/app/data`       | app data for persistency |
-| `/app/config.yml` | configuration from outside of container, copy [default config](https://raw.githubusercontent.com/capcom6/gomvn/master/config.yml) |
+| `/app/config.yml` | configuration from outside of container, copy [default config](./configs/config.example.yml) |
 
 
 User Guide

@@ -4,14 +4,14 @@ import (
 	"encoding/base64"
 	"strings"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 )
 
 // Config defines the config for BasicAuth middleware
 type Config struct {
-	// Filter defines a function to skip middleware.
+	// Next defines a function to skip middleware.
 	// Optional. Default: nil
-	Filter func(*fiber.Ctx) bool
+	Next func(*fiber.Ctx) bool
 	// Users defines the allowed credentials
 	// Required. Default: map[string]string{}
 	Users map[string]string
@@ -29,10 +29,10 @@ type Config struct {
 	Authorizer func(*fiber.Ctx, string, string) bool
 	// Unauthorized defines the response body for unauthorized responses.
 	// Optional. Default: nil
-	Unauthorized func(*fiber.Ctx)
+	Unauthorized func(*fiber.Ctx) error
 }
 
-func New(config ...Config) func(*fiber.Ctx) {
+func New(config ...Config) func(*fiber.Ctx) error {
 	// Init config
 	var cfg Config
 	if len(config) > 0 {
@@ -53,17 +53,16 @@ func New(config ...Config) func(*fiber.Ctx) {
 		}
 	}
 	if cfg.Unauthorized == nil {
-		cfg.Unauthorized = func(c *fiber.Ctx) {
+		cfg.Unauthorized = func(c *fiber.Ctx) error {
 			c.Set(fiber.HeaderWWWAuthenticate, "basic realm="+cfg.Realm)
-			c.SendStatus(401)
+			return c.SendStatus(401)
 		}
 	}
 	// Return middleware handler
-	return func(c *fiber.Ctx) {
+	return func(c *fiber.Ctx) error {
 		// Filter request to skip middleware
-		if cfg.Filter != nil && cfg.Filter(c) {
-			c.Next()
-			return
+		if cfg.Next != nil && cfg.Next(c) {
+			return c.Next()
 		}
 		// Get authorization header
 		auth := c.Get(fiber.HeaderAuthorization)
@@ -81,14 +80,13 @@ func New(config ...Config) func(*fiber.Ctx) {
 						pass := cred[i+1:]
 						// If exist & match in Users, we let him pass
 						if cfg.Authorizer(c, user, pass) {
-							c.Next()
-							return
+							return c.Next()
 						}
 					}
 				}
 			}
 		}
 		// Authentication failed
-		cfg.Unauthorized(c)
+		return cfg.Unauthorized(c)
 	}
 }

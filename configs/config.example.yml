@@ -1,0 +1,19 @@
+name: Maven Repository
+
+debug: false
+
+permissions:
+  view: false
+  deploy: false
+
+server:
+  host: 0.0.0.0
+  port: 8080
+
+database:
+  driver: sqlite
+  dsn: data/data.db
+
+repository:
+  - release
+  - snapshot

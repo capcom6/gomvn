@@ -4,9 +4,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/gofiber/compression"
-	"github.com/gofiber/fiber"
-	"github.com/gofiber/logger"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/template/html"
 
 	"github.com/gomvn/gomvn/internal/config"
@@ -16,12 +17,16 @@ import (
 )
 
 func New(conf *config.App, ps *service.PathService, storage *service.Storage, us *user.Service, rs *service.RepoService) *Server {
-	app := fiber.New()
-	app.Settings.IdleTimeout = time.Second * 5
-	app.Settings.DisableStartupMessage = true
-	app.Settings.Templates = html.New("./views", ".html")
+	engine := html.New("./views", ".html")
 
-	app.Use(compression.New())
+	app := fiber.New(fiber.Config{
+		IdleTimeout:           5 * time.Second,
+		DisableStartupMessage: true,
+		Views:                 engine,
+	})
+
+	app.Use(recover.New())
+	app.Use(compress.New())
 	app.Use(logger.New())
 
 	server := &Server{
@@ -34,13 +39,7 @@ func New(conf *config.App, ps *service.PathService, storage *service.Storage, us
 		rs:      rs,
 	}
 
-	api := app.Group("/api")
-	api.Use(middleware.NewApiAuth(us))
-	api.Get("/users", server.handleApiGetUsers)
-	api.Post("/users", server.handleApiPostUsers)
-	api.Put("/users/:id", server.handleApiPutUsers)
-	api.Delete("/users/:id", server.handleApiDeleteUsers)
-	api.Get("/users/:id/refresh", server.handleApiGetUsersRefresh)
+	registerApi(app, us, server)
 
 	app.Put("/*", middleware.NewRepoAuth(us, ps, true), server.handlePut)
 	app.Get("/", server.handleIndex)
@@ -49,8 +48,21 @@ func New(conf *config.App, ps *service.PathService, storage *service.Storage, us
 	app.Static("/", storage.GetRoot(), fiber.Static{
 		Browse: true,
 	})
+	app.Use(func(c *fiber.Ctx) error {
+		return c.SendStatus(fiber.StatusNotFound)
+	})
 
 	return server
+}
+
+func registerApi(app *fiber.App, us *user.Service, server *Server) {
+	api := app.Group("/api")
+	api.Use(middleware.NewApiAuth(us))
+	api.Get("/users", server.handleApiGetUsers)
+	api.Post("/users", server.handleApiPostUsers)
+	api.Put("/users/:id", server.handleApiPutUsers)
+	api.Delete("/users/:id", server.handleApiDeleteUsers)
+	api.Get("/users/:id/refresh", server.handleApiGetUsersRefresh)
 }
 
 type Server struct {

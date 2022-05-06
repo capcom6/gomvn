@@ -3,27 +3,24 @@ package server
 import (
 	"fmt"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 )
 
-func (s *Server) handleApiPostUsers(c *fiber.Ctx) {
+func (s *Server) handleApiPostUsers(c *fiber.Ctx) error {
 	r := new(apiPostUsersRequest)
 	if err := c.BodyParser(r); err != nil {
-		c.Status(fiber.StatusBadRequest).SendString(err.Error())
-		return
+		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 	if err := r.validate(); err != nil {
-		c.Status(fiber.StatusBadRequest).SendString(err.Error())
-		return
+		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 
 	user, token, err := s.us.Create(r.Name, r.Admin, r.Deploy, r.Allowed)
 	if err != nil {
-		c.Status(fiber.StatusInternalServerError).SendString(err.Error())
-		return
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	c.JSON(&apiPostUsersResponse{
+	return c.JSON(&apiPostUsersResponse{
 		Id:    user.ID,
 		Name:  user.Name,
 		Token: token,

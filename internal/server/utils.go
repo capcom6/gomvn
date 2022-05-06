@@ -3,7 +3,7 @@ package server
 import (
 	"strconv"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 )
 
 func getQueryUint64(c *fiber.Ctx, name string, def uint64) uint64 {

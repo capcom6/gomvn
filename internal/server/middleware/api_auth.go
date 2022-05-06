@@ -1,14 +1,14 @@
 package middleware
 
 import (
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gomvn/gomvn/internal/server/basicauth"
 	"github.com/gomvn/gomvn/internal/service/user"
 )
 
-func NewApiAuth(us *user.Service) func(*fiber.Ctx) {
+func NewApiAuth(us *user.Service) func(*fiber.Ctx) error {
 	return basicauth.New(basicauth.Config{
 		Authorizer: func(c *fiber.Ctx, name string, token string) bool {
 			u, err := us.GetByName(name)
