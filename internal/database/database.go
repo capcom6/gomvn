@@ -5,12 +5,20 @@ import (
 	"os"
 	"time"
 
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
 	"github.com/gomvn/gomvn/internal/config"
 	"github.com/gomvn/gomvn/internal/entity"
+)
+
+const (
+	DRIVER_SQLITE   = "sqlite"
+	DRIVER_MYSQL    = "mysql"
+	DRIVER_POSTGRES = "postgres"
 )
 
 func New(conf *config.App) (*gorm.DB, error) {
@@ -32,18 +40,24 @@ func New(conf *config.App) (*gorm.DB, error) {
 		)
 	}
 
-	// db, err := gorm.Open("sqlite3", "data/data.db")
-	db, err := gorm.Open(sqlite.Open("data/data.db"), &gorm.Config{
+	var dialector gorm.Dialector
+	switch conf.Database.Driver {
+	case DRIVER_MYSQL:
+		dialector = mysql.Open(conf.Database.DSN)
+	case DRIVER_POSTGRES:
+		dialector = postgres.Open(conf.Database.DSN)
+	default:
+		dialector = sqlite.Open(conf.Database.DSN)
+	}
+
+	db, err := gorm.Open(dialector, &gorm.Config{
 		Logger: debugLog,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	// db.LogMode(true)
 	db.AutoMigrate(&entity.User{}, &entity.Path{})
-	// ALTER TABLE doesn't work for SQLite
-	// db.Model(&entity.Path{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 
 	return db, nil
 }

@@ -12,6 +12,7 @@ type App struct {
 	Repository  []string
 	Permissions Permissions
 	Debug       bool
+	Database    Database `yaml:"database"`
 }
 
 func NewAppConfig(file string) (*App, error) {
