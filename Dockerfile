@@ -1,24 +1,26 @@
 ################################
 # STEP 1 build executable binary
 ################################
-FROM golang:1.14-alpine AS builder
+FROM golang:1.17-alpine AS builder
 
 RUN apk update && apk add --no-cache git make build-base
 
 WORKDIR /build
-COPY internal internal
-COPY main.go main.go
 COPY go.mod go.mod
 COPY go.sum go.sum
 
+RUN go mod download
+
+COPY internal internal
+COPY main.go main.go
+
 # Build the binary
-RUN go install
-RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-w -s" -a -installsuffix cgo -o output/app .
+RUN CGO_ENABLED=1 go build -ldflags="-w -s" -a -installsuffix cgo -o output/app .
 
 ############################
 # STEP 2 build a small image
 ############################
-FROM alpine
+FROM alpine:3
 
 WORKDIR /app
 RUN apk update && apk add --no-cache sqlite
