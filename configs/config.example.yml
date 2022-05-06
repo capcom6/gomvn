@@ -3,6 +3,7 @@ name: Maven Repository
 debug: false
 
 permissions:
+  index: true
   view: false
   deploy: false
 

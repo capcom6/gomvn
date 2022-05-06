@@ -43,8 +43,16 @@ func New(conf *config.App, ps *service.PathService, storage *service.Storage, us
 
 	app.Put("/*", middleware.NewRepoAuth(us, ps, true), server.handlePut)
 
+	if *us.GetDefaultPermissions().Index {
+		app.Get("/", server.handleIndex)
+	}
+
 	app.Use(middleware.NewRepoAuth(us, ps, false))
-	app.Get("/", server.handleIndex)
+
+	if !*us.GetDefaultPermissions().Index {
+		app.Get("/", server.handleIndex)
+	}
+
 	app.Static("/", storage.GetRoot(), fiber.Static{
 		Browse: true,
 	})
