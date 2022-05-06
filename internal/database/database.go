@@ -46,8 +46,10 @@ func New(conf *config.App) (*gorm.DB, error) {
 		dialector = mysql.Open(conf.Database.DSN)
 	case DRIVER_POSTGRES:
 		dialector = postgres.Open(conf.Database.DSN)
-	default:
+	case DRIVER_SQLITE:
 		dialector = sqlite.Open(conf.Database.DSN)
+	default:
+		dialector = sqlite.Open("data/data.db")
 	}
 
 	db, err := gorm.Open(dialector, &gorm.Config{
