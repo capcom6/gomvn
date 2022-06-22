@@ -7,6 +7,17 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// @Summary      Update user
+// @Description  updates single user without changing token
+// @Tags         Users
+// @Security     BasicAuth
+// @Produce      json
+// @Param        id    path      int                 true  "User ID"
+// @Param        user  body      apiPutUsersRequest  true  "Edited user"
+// @Success      200   {object}  apiGetUsersResponse
+// @Failure      400   {object}  string
+// @Failure      500   {object}  string
+// @Router       /api/users/{id} [get]
 func (s *Server) handleApiPutUsers(c *fiber.Ctx) error {
 	r := new(apiPutUsersRequest)
 	if err := c.BodyParser(r); err != nil {
@@ -32,8 +43,8 @@ func (s *Server) handleApiPutUsers(c *fiber.Ctx) error {
 }
 
 type apiPutUsersRequest struct {
-	Deploy  bool     `json:"deploy"`
-	Allowed []string `json:"allowed"`
+	Deploy  bool     `json:"deploy"`  // Is alowed to deploy
+	Allowed []string `json:"allowed"` // Allowed paths
 }
 
 func (r *apiPutUsersRequest) validate() error {
@@ -49,6 +60,6 @@ func (r *apiPutUsersRequest) validate() error {
 }
 
 type apiPutUsersResponse struct {
-	Id   uint   `json:"id"`
-	Name string `json:"name"`
+	Id   uint   `json:"id"`   // User ID
+	Name string `json:"name"` // User name
 }

@@ -1,0 +1,404 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Management API",
+        "title": "Self-Hoster Maven Repository",
+        "contact": {
+            "name": "Aleksandr Soloshenko",
+            "email": "capcom@soft-c.ru"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://github.com/capcom6/gomvn/blob/master/LICENSE"
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/api/users": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "returns list of users",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "List users",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Limit on page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset of page",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.apiGetUsersResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "creates new user and returns access token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Create user",
+                "parameters": [
+                    {
+                        "description": "New user",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.apiPostUsersRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.apiPostUsersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "updates single user without changing token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Edited user",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.apiPutUsersRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.apiGetUsersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "deletes user by id",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Delete user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "203": {
+                        "description": "Non-Authoritative Information",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/{id}/refresh": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "regenerates user access token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Refreshes user token",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.apiGetUsersTokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "server.apiGetUsersItem": {
+            "type": "object",
+            "properties": {
+                "allowed": {
+                    "description": "List of allowed paths",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/server.apiGetUsersPathItem"
+                    }
+                },
+                "createdAt": {
+                    "description": "User created at",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "User ID",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "User name",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "User updated at",
+                    "type": "string"
+                }
+            }
+        },
+        "server.apiGetUsersPathItem": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "description": "Path created at",
+                    "type": "string"
+                },
+                "deploy": {
+                    "description": "Allowed to delploy",
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "Path",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "Path updated at",
+                    "type": "string"
+                }
+            }
+        },
+        "server.apiGetUsersResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "description": "List of users",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/server.apiGetUsersItem"
+                    }
+                },
+                "total": {
+                    "description": "Total count of users",
+                    "type": "integer"
+                }
+            }
+        },
+        "server.apiGetUsersTokenResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "User ID",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "User name",
+                    "type": "string"
+                },
+                "token": {
+                    "description": "User new access token",
+                    "type": "string"
+                }
+            }
+        },
+        "server.apiPostUsersRequest": {
+            "type": "object",
+            "properties": {
+                "admin": {
+                    "description": "Is admin user",
+                    "type": "boolean"
+                },
+                "allowed": {
+                    "description": "Allowed paths",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "deploy": {
+                    "description": "Is allowed to deploy",
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "User name",
+                    "type": "string"
+                }
+            }
+        },
+        "server.apiPostUsersResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "User ID",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "User name",
+                    "type": "string"
+                },
+                "token": {
+                    "description": "Access token",
+                    "type": "string"
+                }
+            }
+        },
+        "server.apiPutUsersRequest": {
+            "type": "object",
+            "properties": {
+                "allowed": {
+                    "description": "Allowed paths",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "deploy": {
+                    "description": "Is alowed to deploy",
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BasicAuth": {
+            "type": "basic"
+        }
+    }
+}
