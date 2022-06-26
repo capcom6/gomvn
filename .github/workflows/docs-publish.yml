@@ -15,7 +15,7 @@ jobs:
         with:
           go-version: ">=1.17.0"
       - run: |
-          sed s/{{VERSION}}/${GITHUB_REF}/g ./main.go 
+          sed -i "s/{{VERSION}}/${GITHUB_REF}/g" ./main.go
           go install github.com/swaggo/swag/cmd/swag@latest 
           swag init -o ./api/
       - name: Deploy
