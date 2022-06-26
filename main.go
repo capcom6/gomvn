@@ -12,7 +12,7 @@ import (
 )
 
 // @title        Self-Hoster Maven Repository
-// @version      1.0.0
+// @version      {{VERSION}}
 // @description  Management API
 
 // @contact.name   Aleksandr Soloshenko

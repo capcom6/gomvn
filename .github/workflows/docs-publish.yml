@@ -14,7 +14,10 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: ">=1.17.0"
-      - run: "go install github.com/swaggo/swag/cmd/swag@latest && swag init -o ./api/"
+      - run: |
+          sed s/{{VERSION}}/${GITHUB_REF}/g ./main.go 
+          go install github.com/swaggo/swag/cmd/swag@latest 
+          swag init -o ./api/
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
