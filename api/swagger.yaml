@@ -98,6 +98,20 @@ definitions:
         description: Is alowed to deploy
         type: boolean
     type: object
+  server.apiPuthUsersPathsRequestItem:
+    properties:
+      deploy:
+        type: boolean
+      path:
+        type: string
+    type: object
+  server.apiPuthUsersPathsResponseItem:
+    properties:
+      deploy:
+        type: boolean
+      path:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -232,6 +246,50 @@ paths:
       summary: Update user
       tags:
       - Users
+  /api/users/{id}/paths:
+    put:
+      description: replaces user's allowed paths
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Allowed paths
+        in: body
+        name: paths
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/server.apiPuthUsersPathsRequestItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Current allowed paths
+          schema:
+            items:
+              $ref: '#/definitions/server.apiPuthUsersPathsResponseItem'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BasicAuth: []
+      summary: Replace user's allowed paths
+      tags:
+      - Users
+      - Paths
   /api/users/{id}/refresh:
     get:
       description: regenerates user access token
