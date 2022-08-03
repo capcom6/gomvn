@@ -117,7 +117,7 @@ const docTemplate = `{
             }
         },
         "/api/users/{id}": {
-            "get": {
+            "put": {
                 "security": [
                     {
                         "BasicAuth": []
@@ -202,6 +202,74 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/{id}/paths": {
+            "put": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "replaces user's allowed paths",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users",
+                    "Paths"
+                ],
+                "summary": "Replace user's allowed paths",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Allowed paths",
+                        "name": "paths",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/server.apiPuthUsersPathsRequestItem"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Current allowed paths",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/server.apiPuthUsersPathsResponseItem"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "string"
                         }
@@ -401,6 +469,28 @@ const docTemplate = `{
                     "type": "boolean"
                 }
             }
+        },
+        "server.apiPuthUsersPathsRequestItem": {
+            "type": "object",
+            "properties": {
+                "deploy": {
+                    "type": "boolean"
+                },
+                "path": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.apiPuthUsersPathsResponseItem": {
+            "type": "object",
+            "properties": {
+                "deploy": {
+                    "type": "boolean"
+                },
+                "path": {
+                    "type": "string"
+                }
+            }
         }
     },
     "securityDefinitions": {
@@ -412,7 +502,7 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "dev",
+	Version:          "v0.2.3",
 	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{},
