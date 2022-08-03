@@ -101,15 +101,19 @@ definitions:
   server.apiPuthUsersPathsRequestItem:
     properties:
       deploy:
+        description: Allowed to delploy
         type: boolean
-      path:
+      name:
+        description: Path
         type: string
     type: object
   server.apiPuthUsersPathsResponseItem:
     properties:
       deploy:
+        description: Allowed to delploy
         type: boolean
-      path:
+      name:
+        description: Path
         type: string
     type: object
 host: localhost:8080
@@ -122,7 +126,7 @@ info:
     name: MIT
     url: https://github.com/capcom6/gomvn/blob/master/LICENSE
   title: Self-Hoster Maven Repository
-  version: v0.2.3
+  version: v0.2.4
 paths:
   /api/users:
     get:

@@ -474,9 +474,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "deploy": {
+                    "description": "Allowed to delploy",
                     "type": "boolean"
                 },
-                "path": {
+                "name": {
+                    "description": "Path",
                     "type": "string"
                 }
             }
@@ -485,9 +487,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "deploy": {
+                    "description": "Allowed to delploy",
                     "type": "boolean"
                 },
-                "path": {
+                "name": {
+                    "description": "Path",
                     "type": "string"
                 }
             }
@@ -502,7 +506,7 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "v0.2.3",
+	Version:          "v0.2.4",
 	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{},
