@@ -17,7 +17,7 @@ import (
 // @Success      200   {object}  apiGetUsersResponse
 // @Failure      400   {object}  string
 // @Failure      500   {object}  string
-// @Router       /api/users/{id} [get]
+// @Router       /api/users/{id} [put]
 func (s *Server) handleApiPutUsers(c *fiber.Ctx) error {
 	r := new(apiPutUsersRequest)
 	if err := c.BodyParser(r); err != nil {
