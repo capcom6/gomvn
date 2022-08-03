@@ -101,15 +101,19 @@ definitions:
   server.apiPuthUsersPathsRequestItem:
     properties:
       deploy:
+        description: Allowed to delploy
         type: boolean
-      path:
+      name:
+        description: Path
         type: string
     type: object
   server.apiPuthUsersPathsResponseItem:
     properties:
       deploy:
+        description: Allowed to delploy
         type: boolean
-      path:
+      name:
+        description: Path
         type: string
     type: object
 host: localhost:8080

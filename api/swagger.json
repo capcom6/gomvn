@@ -467,9 +467,11 @@
             "type": "object",
             "properties": {
                 "deploy": {
+                    "description": "Allowed to delploy",
                     "type": "boolean"
                 },
-                "path": {
+                "name": {
+                    "description": "Path",
                     "type": "string"
                 }
             }
@@ -478,9 +480,11 @@
             "type": "object",
             "properties": {
                 "deploy": {
+                    "description": "Allowed to delploy",
                     "type": "boolean"
                 },
-                "path": {
+                "name": {
+                    "description": "Path",
                     "type": "string"
                 }
             }

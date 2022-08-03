@@ -77,11 +77,11 @@ func (s *Server) handleApiPutUsersPaths(c *fiber.Ctx) error {
 }
 
 type apiPuthUsersPathsRequestItem struct {
-	Path   string `json:"path"`
-	Deploy bool   `json:"deploy"`
+	Path   string `json:"name"`   // Path
+	Deploy bool   `json:"deploy"` // Allowed to delploy
 }
 
 type apiPuthUsersPathsResponseItem struct {
-	Path   string `json:"path"`
-	Deploy bool   `json:"deploy"`
+	Path   string `json:"name"`   // Path
+	Deploy bool   `json:"deploy"` // Allowed to delploy
 }
