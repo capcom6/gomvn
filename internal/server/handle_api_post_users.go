@@ -6,6 +6,16 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// @Summary      Create user
+// @Description  creates new user and returns access token
+// @Tags         Users
+// @Security     BasicAuth
+// @Produce      json
+// @Param        user  body      apiPostUsersRequest  true  "New user"
+// @Success      200   {object}  apiPostUsersResponse
+// @Failure      400   {object}  string
+// @Failure      500   {object}  string
+// @Router       /api/users [post]
 func (s *Server) handleApiPostUsers(c *fiber.Ctx) error {
 	r := new(apiPostUsersRequest)
 	if err := c.BodyParser(r); err != nil {
@@ -28,10 +38,10 @@ func (s *Server) handleApiPostUsers(c *fiber.Ctx) error {
 }
 
 type apiPostUsersRequest struct {
-	Name    string   `json:"name"`
-	Admin   bool     `json:"admin"`
-	Deploy  bool     `json:"deploy"`
-	Allowed []string `json:"allowed"`
+	Name    string   `json:"name"`    // User name
+	Admin   bool     `json:"admin"`   // Is admin user
+	Deploy  bool     `json:"deploy"`  // Is allowed to deploy
+	Allowed []string `json:"allowed"` // Allowed paths
 }
 
 func (r *apiPostUsersRequest) validate() error {
@@ -50,7 +60,7 @@ func (r *apiPostUsersRequest) validate() error {
 }
 
 type apiPostUsersResponse struct {
-	Id    uint   `json:"id"`
-	Name  string `json:"name"`
-	Token string `json:"token"`
+	Id    uint   `json:"id"`    // User ID
+	Name  string `json:"name"`  // User name
+	Token string `json:"token"` // Access token
 }

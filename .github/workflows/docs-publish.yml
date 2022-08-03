@@ -1,0 +1,27 @@
+name: Publich Docs
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ">=1.17.0"
+      - run: |
+          sed -i s/{{VERSION}}/${GITHUB_REF_NAME}/g ./main.go
+          go install github.com/swaggo/swag/cmd/swag@latest 
+          swag init -o ./api/
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./api

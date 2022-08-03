@@ -1,0 +1,325 @@
+basePath: /
+definitions:
+  server.apiGetUsersItem:
+    properties:
+      allowed:
+        description: List of allowed paths
+        items:
+          $ref: '#/definitions/server.apiGetUsersPathItem'
+        type: array
+      createdAt:
+        description: User created at
+        type: string
+      id:
+        description: User ID
+        type: integer
+      name:
+        description: User name
+        type: string
+      updatedAt:
+        description: User updated at
+        type: string
+    type: object
+  server.apiGetUsersPathItem:
+    properties:
+      createdAt:
+        description: Path created at
+        type: string
+      deploy:
+        description: Allowed to delploy
+        type: boolean
+      name:
+        description: Path
+        type: string
+      updatedAt:
+        description: Path updated at
+        type: string
+    type: object
+  server.apiGetUsersResponse:
+    properties:
+      items:
+        description: List of users
+        items:
+          $ref: '#/definitions/server.apiGetUsersItem'
+        type: array
+      total:
+        description: Total count of users
+        type: integer
+    type: object
+  server.apiGetUsersTokenResponse:
+    properties:
+      id:
+        description: User ID
+        type: integer
+      name:
+        description: User name
+        type: string
+      token:
+        description: User new access token
+        type: string
+    type: object
+  server.apiPostUsersRequest:
+    properties:
+      admin:
+        description: Is admin user
+        type: boolean
+      allowed:
+        description: Allowed paths
+        items:
+          type: string
+        type: array
+      deploy:
+        description: Is allowed to deploy
+        type: boolean
+      name:
+        description: User name
+        type: string
+    type: object
+  server.apiPostUsersResponse:
+    properties:
+      id:
+        description: User ID
+        type: integer
+      name:
+        description: User name
+        type: string
+      token:
+        description: Access token
+        type: string
+    type: object
+  server.apiPutUsersRequest:
+    properties:
+      allowed:
+        description: Allowed paths
+        items:
+          type: string
+        type: array
+      deploy:
+        description: Is alowed to deploy
+        type: boolean
+    type: object
+  server.apiPuthUsersPathsRequestItem:
+    properties:
+      deploy:
+        type: boolean
+      path:
+        type: string
+    type: object
+  server.apiPuthUsersPathsResponseItem:
+    properties:
+      deploy:
+        type: boolean
+      path:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: capcom@soft-c.ru
+    name: Aleksandr Soloshenko
+  description: Management API
+  license:
+    name: MIT
+    url: https://github.com/capcom6/gomvn/blob/master/LICENSE
+  title: Self-Hoster Maven Repository
+  version: '{{VERSION}}'
+paths:
+  /api/users:
+    get:
+      description: returns list of users
+      parameters:
+      - default: 50
+        description: Limit on page
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset of page
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.apiGetUsersResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BasicAuth: []
+      summary: List users
+      tags:
+      - Users
+    post:
+      description: creates new user and returns access token
+      parameters:
+      - description: New user
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/server.apiPostUsersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.apiPostUsersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BasicAuth: []
+      summary: Create user
+      tags:
+      - Users
+  /api/users/{id}:
+    delete:
+      description: deletes user by id
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "203":
+          description: Non-Authoritative Information
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BasicAuth: []
+      summary: Delete user
+      tags:
+      - Users
+    put:
+      description: updates single user without changing token
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Edited user
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/server.apiPutUsersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.apiGetUsersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BasicAuth: []
+      summary: Update user
+      tags:
+      - Users
+  /api/users/{id}/paths:
+    put:
+      description: replaces user's allowed paths
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Allowed paths
+        in: body
+        name: paths
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/server.apiPuthUsersPathsRequestItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Current allowed paths
+          schema:
+            items:
+              $ref: '#/definitions/server.apiPuthUsersPathsResponseItem'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BasicAuth: []
+      summary: Replace user's allowed paths
+      tags:
+      - Users
+      - Paths
+  /api/users/{id}/refresh:
+    get:
+      description: regenerates user access token
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.apiGetUsersTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BasicAuth: []
+      summary: Refreshes user token
+      tags:
+      - Users
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

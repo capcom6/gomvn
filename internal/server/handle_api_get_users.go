@@ -8,6 +8,16 @@ import (
 	"github.com/gomvn/gomvn/internal/entity"
 )
 
+// @Summary      List users
+// @Description  returns list of users
+// @Tags         Users
+// @Security     BasicAuth
+// @Produce      json
+// @Param        limit   query     int  false  "Limit on page"   Default(50)
+// @Param        offset  query     int  false  "Offset of page"  Default(0)
+// @Success      200     {object}  apiGetUsersResponse
+// @Failure      500     {object}  string
+// @Router       /api/users [get]
 func (s *Server) handleApiGetUsers(c *fiber.Ctx) error {
 	limit := getQueryInt(c, "limit", 50)
 	offset := getQueryInt(c, "offset", 0)
@@ -51,21 +61,21 @@ func mapToApiGetUsersPathItem(paths []entity.Path) []apiGetUsersPathItem {
 }
 
 type apiGetUsersResponse struct {
-	Total int64             `json:"total"`
-	Items []apiGetUsersItem `json:"items"`
+	Total int64             `json:"total"` // Total count of users
+	Items []apiGetUsersItem `json:"items"` // List of users
 }
 
 type apiGetUsersItem struct {
-	Id        uint                  `json:"id"`
-	Name      string                `json:"name"`
-	CreatedAt time.Time             `json:"createdAt"`
-	UpdatedAt time.Time             `json:"updatedAt"`
-	Paths     []apiGetUsersPathItem `json:"allowed"`
+	Id        uint                  `json:"id"`        // User ID
+	Name      string                `json:"name"`      // User name
+	CreatedAt time.Time             `json:"createdAt"` // User created at
+	UpdatedAt time.Time             `json:"updatedAt"` // User updated at
+	Paths     []apiGetUsersPathItem `json:"allowed"`   // List of allowed paths
 }
 
 type apiGetUsersPathItem struct {
-	Path      string    `json:"name"`
-	Deploy    bool      `json:"deploy"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	Path      string    `json:"name"`      // Path
+	Deploy    bool      `json:"deploy"`    // Allowed to delploy
+	CreatedAt time.Time `json:"createdAt"` // Path created at
+	UpdatedAt time.Time `json:"updatedAt"` // Path updated at
 }

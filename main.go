@@ -11,6 +11,19 @@ import (
 	"github.com/gomvn/gomvn/internal/service"
 )
 
+// @title        Self-Hoster Maven Repository
+// @version      {{VERSION}}
+// @description  Management API
+
+// @contact.name   Aleksandr Soloshenko
+// @contact.email  capcom@soft-c.ru
+// @license.name   MIT
+// @license.url    https://github.com/capcom6/gomvn/blob/master/LICENSE
+
+// @host      localhost:8080
+// @BasePath  /
+
+// @securityDefinitions.basic  BasicAuth
 func main() {
 	cf := flag.String("config", "config.yml", "path to config file")
 	flag.Parse()

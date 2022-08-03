@@ -9,17 +9,23 @@ test:
 build:
 	go build -v -ldflags="-w -s" -o output/app
 
-.PHONY: docker-build
 docker-build:
 	docker image build -t capcom6/gomvn .
 
-.PHONY: docker-run
 docker-run: docker-build
 	docker run --rm -it -p 8080:8080 capcom6/gomvn
 
-clean:
-	rm -r output
+api-docs:
+	swag fmt \
+	&& swag init -o ./api
 
-.PHONY: run
+view-docs:
+	php -S 127.0.0.1:8080 -t ./api
+
+clean:
+	rm -r ./tmp
+
 run:
 	go run .
+
+.PHONY: all clean install docker-build docker-run run api-docs view-docs

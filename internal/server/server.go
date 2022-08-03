@@ -70,7 +70,10 @@ func registerApi(app *fiber.App, us *user.Service, server *Server) {
 	api.Post("/users", server.handleApiPostUsers)
 	api.Put("/users/:id", server.handleApiPutUsers)
 	api.Delete("/users/:id", server.handleApiDeleteUsers)
+
 	api.Get("/users/:id/refresh", server.handleApiGetUsersRefresh)
+
+	api.Put("/users/:id/paths", server.handleApiPutUsersPaths)
 }
 
 type Server struct {
