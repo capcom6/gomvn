@@ -27,7 +27,7 @@ RUN apk update && apk add --no-cache sqlite
 
 # Copy executable
 COPY --from=builder /build/output/app /app/app
-COPY config.yml /app/config.yml
+COPY configs/config.example.yml /app/config.yml
 COPY views /app/views
 
 # Expose port and declare volume

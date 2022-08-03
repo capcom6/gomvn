@@ -474,9 +474,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "deploy": {
+                    "description": "Allowed to delploy",
                     "type": "boolean"
                 },
-                "path": {
+                "name": {
+                    "description": "Path",
                     "type": "string"
                 }
             }
@@ -485,9 +487,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "deploy": {
+                    "description": "Allowed to delploy",
                     "type": "boolean"
                 },
-                "path": {
+                "name": {
+                    "description": "Path",
                     "type": "string"
                 }
             }
