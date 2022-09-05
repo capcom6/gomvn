@@ -41,6 +41,8 @@ func New(conf *config.App, ps *service.PathService, storage *service.Storage, us
 
 	registerApi(app, us, server)
 
+	app.Static("/admin", "./views/admin")
+
 	app.Put("/*", middleware.NewRepoAuth(us, ps, true), server.handlePut)
 
 	if *us.GetDefaultPermissions().Index {
