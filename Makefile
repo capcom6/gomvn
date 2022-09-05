@@ -1,5 +1,12 @@
 all: test build
 
+init:
+	go mod download
+
+init-dev: init
+	go install github.com/cosmtrek/air@latest \
+		&& go install github.com/swaggo/swag/cmd/swag@latest
+
 install:
 	go install
 
@@ -28,4 +35,7 @@ clean:
 run:
 	go run .
 
-.PHONY: all clean install docker-build docker-run run api-docs view-docs
+air:
+	air
+
+.PHONY: all clean install docker-build docker-run run api-docs view-docs init init-dev air
