@@ -23,9 +23,13 @@ view-docs:
 	php -S 127.0.0.1:8080 -t ./api
 
 clean:
-	rm -r ./tmp
+	rm -rf ./tmp
+	rm -rf ./data/*
 
 run:
 	go run .
 
-.PHONY: all clean install docker-build docker-run run api-docs view-docs
+air:
+	air
+
+.PHONY: all clean install docker-build docker-run run api-docs view-docs air

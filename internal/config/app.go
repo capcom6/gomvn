@@ -1,7 +1,7 @@
 package config
 
 import (
-	"io/ioutil"
+	"os"
 
 	"gopkg.in/yaml.v2"
 )
@@ -13,11 +13,12 @@ type App struct {
 	Permissions Permissions
 	Debug       bool
 	Database    Database `yaml:"database"`
+	Storage     Storage  `yaml:"storage"`
 }
 
 func NewAppConfig(file string) (*App, error) {
 	var conf App
-	yamlFile, err := ioutil.ReadFile(file)
+	yamlFile, err := os.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}

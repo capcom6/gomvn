@@ -15,6 +15,11 @@ database:
   driver: sqlite
   dsn: data/data.db
 
+storage:
+  driver: local
+  options:
+    root: data/repository
+
 repository:
   - release
   - snapshot
