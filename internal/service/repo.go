@@ -9,7 +9,7 @@ import (
 	"github.com/gomvn/gomvn/internal/entity"
 )
 
-func NewRepoService(conf *config.App, storage *Storage, ps *PathService) *RepoService {
+func NewRepoService(conf *config.App, storage *LocalStorage, ps *PathService) *RepoService {
 	return &RepoService{
 		repository: conf.Repository,
 		storage:    storage,
@@ -19,7 +19,7 @@ func NewRepoService(conf *config.App, storage *Storage, ps *PathService) *RepoSe
 
 type RepoService struct {
 	repository []string
-	storage    *Storage
+	storage    *LocalStorage
 	ps         *PathService
 }
 
@@ -27,7 +27,7 @@ func (s *RepoService) GetRepositories() map[string][]*entity.Artifact {
 	result := map[string][]*entity.Artifact{}
 	for _, repo := range s.repository {
 		result[repo] = []*entity.Artifact{}
-		repoPath := s.storage.File(repo)
+		repoPath := s.storage.file(repo)
 		_ = filepath.Walk(repoPath, func(path string, info os.FileInfo, err error) error {
 			if strings.HasSuffix(path, ".pom") {
 				path = strings.Replace(path, "\\", "/", -1)

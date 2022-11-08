@@ -10,9 +10,14 @@ func Module(configFile string) fx.Option {
 			return NewAppConfig(configFile)
 		}),
 		fx.Provide(provideServerConfig),
+		fx.Provide(provideStorageConfig),
 	)
 }
 
 func provideServerConfig(app *App) *Server {
 	return app.Server
+}
+
+func provideStorageConfig(app *App) *Storage {
+	return &app.Storage
 }

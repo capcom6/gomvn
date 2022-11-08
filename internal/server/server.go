@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,7 +17,7 @@ import (
 	"github.com/gomvn/gomvn/internal/service/user"
 )
 
-func New(conf *config.App, ps *service.PathService, storage *service.Storage, us *user.Service, rs *service.RepoService) *Server {
+func New(conf *config.App, ps *service.PathService, storage *service.LocalStorage, us *user.Service, rs *service.RepoService) *Server {
 	engine := html.New("./views", ".html")
 
 	app := fiber.New(fiber.Config{
@@ -53,9 +54,23 @@ func New(conf *config.App, ps *service.PathService, storage *service.Storage, us
 		app.Get("/", server.handleIndex)
 	}
 
-	app.Static("/", storage.GetRoot(), fiber.Static{
-		Browse: true,
+	app.Get("/+", func(c *fiber.Ctx) error {
+		file, err := storage.Open(c.Params("+"))
+		if err != nil {
+			if os.IsNotExist(err) {
+				return fiber.ErrNotFound
+			}
+			return err
+		}
+		defer func () {
+			file.Close()
+		}()
+		
+		return c.SendStream(file)
 	})
+	// app.Static("/", storage.GetRoot(), fiber.Static{
+	// 	Browse: true,
+	// })
 	app.Use(func(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusNotFound)
 	})
@@ -81,7 +96,7 @@ type Server struct {
 	name    string
 	listen  string
 	ps      *service.PathService
-	storage *service.Storage
+	storage *service.LocalStorage
 	us      *user.Service
 	rs      *service.RepoService
 }
