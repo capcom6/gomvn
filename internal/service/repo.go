@@ -1,15 +1,12 @@
 package service
 
 import (
-	"os"
-	"path/filepath"
-	"strings"
-
 	"github.com/gomvn/gomvn/internal/config"
 	"github.com/gomvn/gomvn/internal/entity"
+	"github.com/gomvn/gomvn/internal/service/storage"
 )
 
-func NewRepoService(conf *config.App, storage *LocalStorage, ps *PathService) *RepoService {
+func NewRepoService(conf *config.App, storage *storage.LocalStorage, ps *PathService) *RepoService {
 	return &RepoService{
 		repository: conf.Repository,
 		storage:    storage,
@@ -19,24 +16,14 @@ func NewRepoService(conf *config.App, storage *LocalStorage, ps *PathService) *R
 
 type RepoService struct {
 	repository []string
-	storage    *LocalStorage
+	storage    *storage.LocalStorage
 	ps         *PathService
 }
 
 func (s *RepoService) GetRepositories() map[string][]*entity.Artifact {
 	result := map[string][]*entity.Artifact{}
 	for _, repo := range s.repository {
-		result[repo] = []*entity.Artifact{}
-		repoPath := s.storage.file(repo)
-		_ = filepath.Walk(repoPath, func(path string, info os.FileInfo, err error) error {
-			if strings.HasSuffix(path, ".pom") {
-				path = strings.Replace(path, "\\", "/", -1)
-				path = strings.Replace(path, repoPath+"/", "", 1)
-				artifact := entity.NewArtifact(path, info.ModTime())
-				result[repo] = append(result[repo], artifact)
-			}
-			return nil
-		})
+		result[repo] = s.storage.List(repo)
 	}
 	return result
 }

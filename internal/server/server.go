@@ -14,10 +14,11 @@ import (
 	"github.com/gomvn/gomvn/internal/config"
 	"github.com/gomvn/gomvn/internal/server/middleware"
 	"github.com/gomvn/gomvn/internal/service"
+	"github.com/gomvn/gomvn/internal/service/storage"
 	"github.com/gomvn/gomvn/internal/service/user"
 )
 
-func New(conf *config.App, ps *service.PathService, storage *service.LocalStorage, us *user.Service, rs *service.RepoService) *Server {
+func New(conf *config.App, ps *service.PathService, storage *storage.LocalStorage, us *user.Service, rs *service.RepoService) *Server {
 	engine := html.New("./views", ".html")
 
 	app := fiber.New(fiber.Config{
@@ -96,7 +97,7 @@ type Server struct {
 	name    string
 	listen  string
 	ps      *service.PathService
-	storage *service.LocalStorage
+	storage *storage.LocalStorage
 	us      *user.Service
 	rs      *service.RepoService
 }
