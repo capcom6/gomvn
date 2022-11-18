@@ -45,7 +45,7 @@ User Guide
 
 On first run, admin account and his token is generated and prited into console.
 
-You will need this to access [management api](https://capcom6.github.io/gomvn/), which is used to set user access.
+You will need this to access [management api](https://capcom6.github.io/gomvn/) or local admin pages (http://my-private-repository.example.com/admin/), which is used to set user access.
 
 If you don't have more users, you can use already created admin accout to deploy and access your maven artifacts.
 
