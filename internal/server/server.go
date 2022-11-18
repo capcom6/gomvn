@@ -18,7 +18,7 @@ import (
 	"github.com/gomvn/gomvn/internal/service/user"
 )
 
-func New(conf *config.App, ps *service.PathService, storage *storage.LocalStorage, us *user.Service, rs *service.RepoService) *Server {
+func New(conf *config.App, ps *service.PathService, storage *storage.Storage, us *user.Service, rs *service.RepoService) *Server {
 	engine := html.New("./views", ".html")
 
 	app := fiber.New(fiber.Config{
@@ -26,6 +26,7 @@ func New(conf *config.App, ps *service.PathService, storage *storage.LocalStorag
 		DisableStartupMessage: true,
 		Views:                 engine,
 	})
+	app.Server().StreamRequestBody = true
 
 	app.Use(recover.New())
 	app.Use(compress.New())
@@ -56,22 +57,24 @@ func New(conf *config.App, ps *service.PathService, storage *storage.LocalStorag
 	}
 
 	app.Get("/+", func(c *fiber.Ctx) error {
-		file, err := storage.Open(c.Params("+"))
+		pathname := c.Params("+")
+		file, contentType, err := storage.Open(pathname)
 		if err != nil {
 			if os.IsNotExist(err) {
 				return fiber.ErrNotFound
 			}
 			return err
 		}
-		defer func () {
-			file.Close()
-		}()
+		if file != nil {
+			defer func () {
+				file.Close()
+			}()
+		}
 		
+		c.Set(fiber.HeaderContentType, contentType)
 		return c.SendStream(file)
 	})
-	// app.Static("/", storage.GetRoot(), fiber.Static{
-	// 	Browse: true,
-	// })
+	
 	app.Use(func(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusNotFound)
 	})
@@ -97,7 +100,7 @@ type Server struct {
 	name    string
 	listen  string
 	ps      *service.PathService
-	storage *storage.LocalStorage
+	storage *storage.Storage
 	us      *user.Service
 	rs      *service.RepoService
 }

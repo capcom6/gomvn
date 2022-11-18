@@ -6,7 +6,7 @@ import (
 	"github.com/gomvn/gomvn/internal/service/storage"
 )
 
-func NewRepoService(conf *config.App, storage *storage.LocalStorage, ps *PathService) *RepoService {
+func NewRepoService(conf *config.App, storage *storage.Storage, ps *PathService) *RepoService {
 	return &RepoService{
 		repository: conf.Repository,
 		storage:    storage,
@@ -16,14 +16,14 @@ func NewRepoService(conf *config.App, storage *storage.LocalStorage, ps *PathSer
 
 type RepoService struct {
 	repository []string
-	storage    *storage.LocalStorage
+	storage    *storage.Storage
 	ps         *PathService
 }
 
 func (s *RepoService) GetRepositories() map[string][]*entity.Artifact {
 	result := map[string][]*entity.Artifact{}
 	for _, repo := range s.repository {
-		result[repo] = s.storage.List(repo)
+		result[repo], _ = s.storage.ListArtifacts(repo)
 	}
 	return result
 }

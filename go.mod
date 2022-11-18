@@ -1,8 +1,9 @@
 module github.com/gomvn/gomvn
 
-go 1.17
+go 1.18
 
 require (
+	github.com/aws/aws-sdk-go v1.44.136
 	github.com/gofiber/fiber/v2 v2.32.0
 	github.com/gofiber/template v1.6.27
 	github.com/matoous/go-nanoid v1.4.1
@@ -23,8 +24,8 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.11.0 // indirect
 	github.com/jackc/pgx/v4 v4.16.1 // indirect
-	golang.org/x/text v0.3.7 // indirect
-	golang.org/x/tools v0.1.10 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
 )
 
 require (
@@ -33,13 +34,13 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.15.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.12 // indirect
-	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/bytebufferpool v1.0.0
 	github.com/valyala/fasthttp v1.35.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/dig v1.9.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	gorm.io/driver/mysql v1.3.5
 	gorm.io/driver/postgres v1.3.8
 )

@@ -12,7 +12,7 @@ func (s *Server) handlePut(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 
-	if err := s.storage.WriteFromRequest(c, path); err != nil {
+	if err := s.storage.Write(path, c.Context().RequestBodyStream()); err != nil {
 		log.Printf("cannot put data: %v", err)
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
