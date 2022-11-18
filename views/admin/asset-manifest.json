@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/admin/static/css/main.0aedada7.css",
+    "main.js": "/admin/static/js/main.73a4a42a.js",
+    "static/media/refresh-token-color.png": "/admin/static/media/refresh-token-color.1f9533649dbe5f5a73af.png",
+    "index.html": "/admin/index.html",
+    "main.0aedada7.css.map": "/admin/static/css/main.0aedada7.css.map",
+    "main.73a4a42a.js.map": "/admin/static/js/main.73a4a42a.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.0aedada7.css",
+    "static/js/main.73a4a42a.js"
+  ]
+}
