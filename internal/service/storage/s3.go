@@ -3,7 +3,6 @@ package storage
 import (
 	"io"
 	"io/fs"
-	"log"
 	"os"
 	"path"
 	"strings"
@@ -25,7 +24,7 @@ const (
 	OptionPrefix   = "prefix"
 )
 
-type awsAdapter struct {
+type s3Adapter struct {
 	session *session.Session
 	s3      *s3.S3
 
@@ -33,11 +32,11 @@ type awsAdapter struct {
 	prefix string
 }
 
-func newAwsAdapter(options map[string]string) *awsAdapter {
-	login := options[OptionLogin]       //"163697_test"
-	password := options[OptionPassword] //"]dyw314GUC"
-	endpoint := options[OptionEndpoint] //"https://s3.storage.selcloud.ru"
-	region := options[OptionRegion]     //"ru-1"
+func newS3Adapter(options map[string]string) *s3Adapter {
+	login := options[OptionLogin]
+	password := options[OptionPassword]
+	endpoint := options[OptionEndpoint]
+	region := options[OptionRegion]
 
 	cfg := aws.NewConfig().
 		WithCredentials(credentials.NewStaticCredentials(login, password, "")).
@@ -46,7 +45,7 @@ func newAwsAdapter(options map[string]string) *awsAdapter {
 
 	s, _ := session.NewSession(cfg)
 
-	return &awsAdapter{
+	return &s3Adapter{
 		session: s,
 		s3:      s3.New(s),
 
@@ -55,25 +54,25 @@ func newAwsAdapter(options map[string]string) *awsAdapter {
 	}
 }
 
-func (a *awsAdapter) IsRegularFile(pathname string) (bool, error) {
+func (a *s3Adapter) IsRegularFile(pathname string) (bool, error) {
 	items, err := a.ListItems(path.Dir(pathname))
 	if err != nil {
 		return false, err
 	}
 
 	_, filename := path.Split(pathname)
-	log.Println(filename)
+
 	for _, v := range items {
 		if v.Name == filename || v.Name == filename+"/" {
-			return v.IsDir, nil
+			return !v.IsDir, nil
 		}
 	}
 
 	return false, os.ErrNotExist
 }
 
-func (a *awsAdapter) ListItems(pathname string) ([]fileInfo, error) {
-	prefix := a.fullname(pathname)+"/"
+func (a *s3Adapter) ListItems(pathname string) ([]fileInfo, error) {
+	prefix := a.fullname(pathname) + "/"
 
 	out, err := a.s3.ListObjectsV2(&s3.ListObjectsV2Input{
 		Bucket:    aws.String(a.bucket),
@@ -91,7 +90,6 @@ func (a *awsAdapter) ListItems(pathname string) ([]fileInfo, error) {
 
 	result := []fileInfo{}
 	for _, v := range out.Contents {
-		log.Println("f: "+strings.Replace(*v.Key, prefix, "", 1))
 		result = append(result, fileInfo{
 			IsDir:   false,
 			Name:    strings.Replace(*v.Key, prefix, "", 1),
@@ -101,10 +99,8 @@ func (a *awsAdapter) ListItems(pathname string) ([]fileInfo, error) {
 	}
 
 	for _, v := range out.CommonPrefixes {
-		// log.Println(v.String())
-		log.Println("d: "+strings.Replace(*v.Prefix, prefix, "", 1))
 		result = append(result, fileInfo{
-			IsDir:   false,
+			IsDir:   true,
 			Name:    strings.Replace(*v.Prefix, prefix, "", 1),
 			Size:    0,
 			ModTime: time.Now(),
@@ -114,7 +110,7 @@ func (a *awsAdapter) ListItems(pathname string) ([]fileInfo, error) {
 	return result, nil
 }
 
-func (a *awsAdapter) Read(pathname string) (io.ReadCloser, error) {
+func (a *s3Adapter) Read(pathname string) (io.ReadCloser, error) {
 	resp, err := a.s3.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(a.bucket),
 		Key:    aws.String(a.fullname(pathname)),
@@ -133,7 +129,7 @@ func (a *awsAdapter) Read(pathname string) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
-func (a *awsAdapter) Write(pathname string, r io.Reader) error {
+func (a *s3Adapter) Write(pathname string, r io.Reader) error {
 	tmp, err := os.CreateTemp("", "aws-")
 	if err != nil {
 		return err
@@ -162,6 +158,6 @@ func (a *awsAdapter) Write(pathname string, r io.Reader) error {
 	return err
 }
 
-func (a *awsAdapter) fullname(pathname string) string {
+func (a *s3Adapter) fullname(pathname string) string {
 	return path.Join(a.prefix, pathname)
 }

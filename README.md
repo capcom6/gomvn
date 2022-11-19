@@ -38,6 +38,24 @@ Available configuration options:
 | database.driver    | database driver to use (`sqlite`, `mysql`, `postgres`) |
 | database.dsn       | database dsn, see https://gorm.io/docs/connecting_to_the_database.html |
 | repository         | list of available repositories |
+| storage            | artifacts storage configuration |
+| storage.driver     | storage driver (`local` or `s3`) |
+| storage.options    | configuration options for storage driver, see below |
+
+#### Storage
+
+Options for `local` storage driver:
+
+- `root` - path to storage root.
+
+Options for `s3` storage driver:
+
+- `login` - user id/login;
+- `password` - user secret/password;
+- `endpoint`;
+- `region`;
+- `bucket`;
+- `prefix`.
 
 
 User Guide

@@ -16,10 +16,24 @@ import (
 	"github.com/valyala/bytebufferpool"
 )
 
+const (
+	DriverLocal = "local"
+	DriverAWS   = "s3"
+)
+
 func NewStorage(cfg *config.Storage) *Storage {
+	var adapter storageAdapter
+	switch cfg.Driver {
+	case DriverLocal:
+		adapter = newLocalAdapter(cfg.Options)
+	case DriverAWS:
+		adapter = newS3Adapter(cfg.Options)
+	default:
+		adapter = newLocalAdapter(map[string]string{"root": "data/repository"})
+	}
+
 	return &Storage{
-		// adapter: newLocalAdapter(cfg.Options),
-		adapter: newAwsAdapter(cfg.Options),
+		adapter: adapter,
 	}
 }
 
@@ -64,17 +78,17 @@ func (s *Storage) Open(pathname string) (io.ReadCloser, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	
-	if !isRegularFile{
+
+	if !isRegularFile {
 		w := &bytebufferpool.ByteBuffer{}
 		err := s.createDirIndex(w, pathname)
 		if err != nil {
 			return nil, "", err
 		}
-		
-		return io.NopCloser(bytes.NewReader(w.Bytes())), "text/html", nil	
+
+		return io.NopCloser(bytes.NewReader(w.Bytes())), "text/html", nil
 	}
-	
+
 	reader, err := s.adapter.Read(pathname)
 	ext := path.Ext(pathname)
 	contentType := mime.TypeByExtension(ext)
