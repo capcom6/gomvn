@@ -8,7 +8,7 @@ require (
 	github.com/gofiber/template v1.6.27
 	github.com/matoous/go-nanoid v1.4.1
 	go.uber.org/fx v1.12.0
-	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
+	golang.org/x/crypto v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/sqlite v1.3.6
 	gorm.io/gorm v1.23.8
