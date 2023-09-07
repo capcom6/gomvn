@@ -126,7 +126,7 @@ info:
     name: MIT
     url: https://github.com/capcom6/gomvn/blob/master/LICENSE
   title: Self-Hoster Maven Repository
-  version: v0.4.1
+  version: v0.4.1a
 paths:
   /api/users:
     get:
