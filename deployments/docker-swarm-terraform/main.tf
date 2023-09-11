@@ -28,7 +28,7 @@ resource "docker_service" "app" {
 
   task_spec {
     container_spec {
-      image = docker_image.app.image_id
+      image = docker_image.app.name
 
       secrets {
         secret_id   = docker_secret.config.id
