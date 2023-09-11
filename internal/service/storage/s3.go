@@ -89,21 +89,21 @@ func (a *s3Adapter) ListItems(pathname string) ([]fileInfo, error) {
 	}
 
 	result := []fileInfo{}
-	for _, v := range out.Contents {
-		result = append(result, fileInfo{
-			IsDir:   false,
-			Name:    strings.Replace(*v.Key, prefix, "", 1),
-			Size:    *v.Size,
-			ModTime: *v.LastModified,
-		})
-	}
-
 	for _, v := range out.CommonPrefixes {
 		result = append(result, fileInfo{
 			IsDir:   true,
 			Name:    strings.Replace(*v.Prefix, prefix, "", 1),
 			Size:    0,
 			ModTime: time.Now(),
+		})
+	}
+
+	for _, v := range out.Contents {
+		result = append(result, fileInfo{
+			IsDir:   false,
+			Name:    strings.Replace(*v.Key, prefix, "", 1),
+			Size:    *v.Size,
+			ModTime: *v.LastModified,
 		})
 	}
 
