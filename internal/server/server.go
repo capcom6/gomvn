@@ -67,16 +67,11 @@ func New(conf *config.App, ps *service.PathService, storage *storage.Storage, us
 			}
 			return err
 		}
-		if file != nil {
-			defer func () {
-				file.Close()
-			}()
-		}
-		
+
 		c.Set(fiber.HeaderContentType, contentType)
 		return c.SendStream(file)
 	})
-	
+
 	app.Use(func(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusNotFound)
 	})
