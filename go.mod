@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/aws/aws-sdk-go v1.44.136
-	github.com/gofiber/fiber/v2 v2.49.2
+	github.com/gofiber/fiber/v2 v2.50.0
 	github.com/gofiber/template v1.6.27
 	github.com/matoous/go-nanoid v1.4.1
 	go.uber.org/fx v1.12.0
@@ -41,11 +41,11 @@ require (
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/valyala/bytebufferpool v1.0.0
-	github.com/valyala/fasthttp v1.49.0 // indirect
+	github.com/valyala/fasthttp v1.50.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/dig v1.9.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 )
