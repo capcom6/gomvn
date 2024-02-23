@@ -4,11 +4,11 @@ go 1.20
 
 require (
 	github.com/aws/aws-sdk-go v1.44.136
-	github.com/gofiber/fiber/v2 v2.50.0
+	github.com/gofiber/fiber/v2 v2.52.1
 	github.com/gofiber/template v1.6.27
 	github.com/matoous/go-nanoid v1.4.1
 	go.uber.org/fx v1.12.0
-	golang.org/x/crypto v0.7.0
+	golang.org/x/crypto v0.14.0
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/mysql v1.3.5
 	gorm.io/driver/postgres v1.3.8
@@ -17,9 +17,9 @@ require (
 )
 
 require (
-	github.com/google/uuid v1.3.1 // indirect
+	github.com/google/uuid v1.5.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 )
@@ -38,14 +38,14 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/klauspost/compress v1.16.7 // indirect
+	github.com/klauspost/compress v1.17.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/valyala/bytebufferpool v1.0.0
-	github.com/valyala/fasthttp v1.50.0 // indirect
+	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/dig v1.9.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 )
