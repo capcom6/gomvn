@@ -1,6 +1,6 @@
 module github.com/gomvn/gomvn
 
-go 1.21
+go 1.24.0
 
 require (
 	github.com/aws/aws-sdk-go v1.44.136
@@ -8,7 +8,7 @@ require (
 	github.com/gofiber/template v1.6.27
 	github.com/matoous/go-nanoid v1.4.1
 	go.uber.org/fx v1.12.0
-	golang.org/x/crypto v0.31.0
+	golang.org/x/crypto v0.45.0
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/mysql v1.3.5
 	gorm.io/driver/postgres v1.3.8
@@ -46,6 +46,6 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/dig v1.9.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 )
