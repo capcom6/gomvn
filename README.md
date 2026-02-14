@@ -69,7 +69,7 @@ GoMVN is a lightweight, self-hosted Maven repository manager written in Go. It a
 
 ### Installation
 
-Use Docker to install this tool. The image is available at [Docker Hub](https://hub.docker.com/r/capcom6/gomvn).
+Use Docker to install this tool. The image is available at [GitHub](https://ghcr.io/capcom6/gomvn).
 
 For better accessibility, map these Docker volumes:
 

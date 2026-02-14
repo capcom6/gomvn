@@ -19,7 +19,7 @@ type App struct {
 
 func NewAppConfig(file string) (*App, error) {
 	if file == "" {
-		file = "config.yaml"
+		file = "config.yml"
 	}
 
 	var conf App
