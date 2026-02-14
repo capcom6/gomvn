@@ -34,6 +34,9 @@ archives:
 
 dockers_v2:
   - dockerfile: Dockerfile.goreleaser
+    extra_files:
+      - configs/config.example.yml
+      - views/
     images:
       - "{{ .Env.DOCKER_REGISTRY }}/{{ .ProjectName }}"
     tags:

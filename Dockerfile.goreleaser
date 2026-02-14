@@ -15,8 +15,14 @@ WORKDIR /app
 
 # Copy the Pre-built binary file from GoReleaser
 COPY --chown=appuser:appuser $TARGETPLATFORM/$BINARY_NAME ./server
+COPY --chown=appuser:appuser configs/config.example.yml /app/config.yml
+COPY --chown=appuser:appuser views /app/views
 
 USER appuser
+
+# Expose port and declare volume
+EXPOSE 8080
+VOLUME /app/data
 
 # Command to run the executable
 ENTRYPOINT ["/app/server"]
