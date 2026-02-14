@@ -6,18 +6,20 @@ import (
 	"go.uber.org/fx"
 )
 
-var Module = fx.Options(
-	fx.Provide(New),
-	fx.Invoke(register),
-)
+func Module() fx.Option {
+	return fx.Options(
+		fx.Provide(New),
+		fx.Invoke(register),
+	)
+}
 
 func register(lifecycle fx.Lifecycle, server *Server) {
 	lifecycle.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			return server.Listen()
 		},
 		OnStop: func(ctx context.Context) error {
-			return server.Shutdown()
+			return server.app.ShutdownWithContext(ctx)
 		},
 	})
 }

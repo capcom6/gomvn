@@ -1,4 +1,4 @@
-package user
+package users
 
 import (
 	"gorm.io/gorm"
@@ -30,7 +30,7 @@ func (s *Service) GetAll(limit, offset int) ([]entity.User, int64, error) {
 		return nil, 0, err
 	}
 	var count int64
-	if err := s.db.Model(&entity.User{}).Count(&count).Error; err != nil {
+	if err := s.db.Model((*entity.User)(nil)).Count(&count).Error; err != nil {
 		return nil, 0, err
 	}
 	return users, count, nil
@@ -46,7 +46,7 @@ func (s *Service) GetByName(name string) (*entity.User, error) {
 
 func (s *Service) GetPaths(user *entity.User) ([]entity.Path, error) {
 	var paths []entity.Path
-	q := s.db.Model(&entity.Path{}).Where("user_id = ?", user.ID).Find(&paths)
+	q := s.db.Model((*entity.Path)(nil)).Where("user_id = ?", user.ID).Find(&paths)
 	if err := q.Error; err != nil {
 		return nil, err
 	}

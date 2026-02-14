@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+type Artifact struct {
+	Group    string
+	Artifact string
+	Version  string
+	Modified time.Time
+}
+
 func NewArtifact(path string, mod time.Time) *Artifact {
 	parts := strings.Split(path, "/")
 	last := len(parts) - 1
@@ -16,15 +23,8 @@ func NewArtifact(path string, mod time.Time) *Artifact {
 	}
 }
 
-type Artifact struct {
-	Group    string
-	Artifact string
-	Version  string
-	Modified time.Time
-}
-
 func (a *Artifact) GetPath() string {
-	return strings.Replace(a.Group, ".", "/", -1) + "/" + a.Artifact + "/" + a.Version
+	return strings.ReplaceAll(a.Group, ".", "/") + "/" + a.Artifact + "/" + a.Version
 }
 
 func (a *Artifact) GetLastModified() string {

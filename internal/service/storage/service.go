@@ -13,13 +13,16 @@ import (
 
 	"github.com/gomvn/gomvn/internal/config"
 	"github.com/gomvn/gomvn/internal/entity"
-	"github.com/valyala/bytebufferpool"
 )
 
 const (
 	DriverLocal = "local"
 	DriverAWS   = "s3"
 )
+
+type Storage struct {
+	adapter storageAdapter
+}
 
 func NewStorage(cfg *config.Storage) *Storage {
 	var adapter storageAdapter
@@ -37,23 +40,19 @@ func NewStorage(cfg *config.Storage) *Storage {
 	}
 }
 
-type Storage struct {
-	adapter storageAdapter
-}
-
 func (s *Storage) ListArtifacts(repo string) ([]*entity.Artifact, error) {
 	result := []*entity.Artifact{}
 
 	items, err := s.adapter.ListItems(repo)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list items at %s: %w", repo, err)
 	}
 
 	for _, info := range items {
 		if info.IsDir {
-			inner, err := s.ListArtifacts(path.Join(repo, info.Name))
-			if err != nil {
-				return nil, err
+			inner, recErr := s.ListArtifacts(path.Join(repo, info.Name))
+			if recErr != nil {
+				return nil, recErr
 			}
 
 			result = append(result, inner...)
@@ -62,7 +61,7 @@ func (s *Storage) ListArtifacts(repo string) ([]*entity.Artifact, error) {
 
 		if strings.HasSuffix(info.Name, ".pom") {
 			pathname := path.Join(repo, info.Name)
-			pathname = path.Clean(strings.Replace(pathname, "\\", "/", -1))
+			pathname = path.Clean(strings.ReplaceAll(pathname, "\\", "/"))
 			pathname = pathname[strings.Index(pathname, "/")+1:]
 
 			artifact := entity.NewArtifact(pathname, info.ModTime)
@@ -76,46 +75,59 @@ func (s *Storage) ListArtifacts(repo string) ([]*entity.Artifact, error) {
 func (s *Storage) Open(pathname string) (io.ReadCloser, string, error) {
 	isRegularFile, err := s.adapter.IsRegularFile(pathname)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("failed to stat file at %s: %w", pathname, err)
 	}
 
 	if !isRegularFile {
-		w := &bytebufferpool.ByteBuffer{}
-		err := s.createDirIndex(w, pathname)
-		if err != nil {
-			return nil, "", err
+		var w bytes.Buffer
+
+		if idxErr := s.createDirIndex(&w, pathname); idxErr != nil {
+			return nil, "", idxErr
 		}
 
 		return io.NopCloser(bytes.NewReader(w.Bytes())), "text/html", nil
 	}
 
 	reader, err := s.adapter.Read(pathname)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to open file at %s: %w", pathname, err)
+	}
+
 	ext := path.Ext(pathname)
 	contentType := mime.TypeByExtension(ext)
 	if contentType == "" {
 		contentType = "application/octet-stream"
 	}
 
-	return reader, contentType, err
+	return reader, contentType, nil
 }
 
 func (s *Storage) Write(pathname string, r io.Reader) error {
-	return s.adapter.Write(pathname, r)
+	err := s.adapter.Write(pathname, r)
+	if err != nil {
+		return fmt.Errorf("failed to write file at %s: %w", pathname, err)
+	}
+
+	return nil
 }
 
 func (s *Storage) createDirIndex(w io.Writer, pathname string) error {
 	fileinfos, err := s.adapter.ListItems(pathname)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to list items at %s: %w", pathname, err)
 	}
 
-	basePathEscaped := html.EscapeString(string(pathname))
-	_, _ = fmt.Fprintf(w, "<html><head><title>%s</title><style>.dir { font-weight: bold }</style></head><body>", basePathEscaped)
+	basePathEscaped := html.EscapeString(pathname)
+	_, _ = fmt.Fprintf(
+		w,
+		"<html><head><title>%s</title><style>.dir { font-weight: bold }</style></head><body>",
+		basePathEscaped,
+	)
 	_, _ = fmt.Fprintf(w, "<h1>%s</h1>", basePathEscaped)
 	_, _ = fmt.Fprintf(w, "<ul>")
 
 	if len(basePathEscaped) > 1 {
-		parentPathEscaped := html.EscapeString(string(path.Dir(pathname)))
+		parentPathEscaped := html.EscapeString(path.Dir(pathname))
 		_, _ = fmt.Fprintf(w, `<li><a href="/%s" class="dir">..</a></li>`, parentPathEscaped)
 	}
 
@@ -130,7 +142,7 @@ func (s *Storage) createDirIndex(w io.Writer, pathname string) error {
 
 	sort.Strings(filenames)
 	for _, name := range filenames {
-		pathEscaped := html.EscapeString(string(path.Join(pathname, name)))
+		pathEscaped := html.EscapeString(path.Join(pathname, name))
 		fi := fm[name]
 		auxStr := "dir"
 		className := "dir"

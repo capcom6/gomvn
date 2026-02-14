@@ -13,8 +13,8 @@ type storageAdapter interface {
 }
 
 type fileInfo struct {
-	IsDir bool
-	Name string
-	Size int64
+	IsDir   bool
+	Name    string
+	Size    int64
 	ModTime time.Time
 }

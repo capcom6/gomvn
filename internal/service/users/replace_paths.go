@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package user
+package users
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gomvn/gomvn/internal/entity"
@@ -46,10 +47,7 @@ func (s *Service) ReplacePaths(id uint, paths []entity.Path) ([]entity.Path, err
 
 	toDelete := make([]entity.Path, 0)
 	for path := range deletePaths {
-		toDelete = append(toDelete, entity.Path{
-			UserID: id,
-			Path:   path,
-		})
+		toDelete = append(toDelete, entity.NewPathID(id, path))
 	}
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
@@ -69,7 +67,7 @@ func (s *Service) ReplacePaths(id uint, paths []entity.Path) ([]entity.Path, err
 	},
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to replace paths: %w", err)
 	}
 
 	return user.Paths, nil

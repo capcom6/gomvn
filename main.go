@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	"go.uber.org/fx"
 
@@ -11,29 +12,31 @@ import (
 	"github.com/gomvn/gomvn/internal/service"
 )
 
-// @title        Self-Hoster Maven Repository
-// @version      {{VERSION}}
-// @description  Management API
+//	@title			Self-Hosted Maven Repository
+//	@version		{{VERSION}}
+//	@description	Management API
 
-// @contact.name   Aleksandr Soloshenko
-// @contact.email  capcom@soft-c.ru
-// @license.name   MIT
-// @license.url    https://github.com/capcom6/gomvn/blob/master/LICENSE
+//	@contact.name	Aleksandr Soloshenko
+//	@contact.email	capcom@soft-c.ru
+//	@license.name	MIT
+//	@license.url	https://github.com/capcom6/gomvn/blob/master/LICENSE
 
-// @host      localhost:8080
-// @BasePath  /
+//	@host		localhost:8080
+//	@BasePath	/
 
-// @securityDefinitions.basic  BasicAuth
+//	@securityDefinitions.basic	BasicAuth
+//
+// Self-Hosted Maven Repository.
 func main() {
-	cf := flag.String("config", "config.yml", "path to config file")
+	cf := flag.String("config", os.Getenv("CONFIG_PATH"), "path to config file")
 	flag.Parse()
 
 	app := fx.New(
 		fx.NopLogger,
 		config.Module(*cf),
-		database.Module,
-		service.Module,
-		server.Module,
+		database.Module(),
+		service.Module(),
+		server.Module(),
 	)
 	app.Run()
 }

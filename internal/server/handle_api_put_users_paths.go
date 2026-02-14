@@ -1,43 +1,36 @@
-// Copyright 2022 Aleksandr Soloshenko
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package server
 
 import (
-	"log"
+	"log" //nolint:depguard // TODO
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gomvn/gomvn/internal/entity"
 )
 
-// @Summary      Replace user's allowed paths
-// @Description  replaces user's allowed paths
-// @Tags         Users,Paths
-// @Security     BasicAuth
-// @Produce      json
-// @Param        id     path      int                             true  "User ID"
-// @Param        paths  body      []apiPuthUsersPathsRequestItem  true  "Allowed paths"
-// @Success      200    {array}   apiPuthUsersPathsResponseItem   "Current allowed paths"
-// @Failure      400    {object}  string
-// @Failure      401    {object}  string
-// @Failure      500    {object}  string
-// @Router       /api/users/{id}/paths [put]
-func (s *Server) handleApiPutUsersPaths(c *fiber.Ctx) error {
-	paths := make([]*apiPuthUsersPathsRequestItem, 0)
-	if err := c.BodyParser(&paths); err != nil {
+//	@Summary		Replace user's allowed paths
+//	@Description	replaces user's allowed paths
+//	@Tags			Users,Paths
+//	@Security		BasicAuth
+//	@Produce		json
+//	@Param			id		path		int								true	"User ID"
+//	@Param			paths	body		[]apiPutUsersPathsRequestItem	true	"Allowed paths"
+//	@Success		200		{array}		apiPutUsersPathsResponseItem	"Current allowed paths"
+//	@Failure		400		{object}	string
+//	@Failure		401		{object}	string
+//	@Failure		500		{object}	string
+//	@Router			/api/users/{id}/paths [put]
+//
+// Replace user's allowed paths.
+func (s *Server) handleAPIPutUsersPaths(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 32)
+	if err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+	}
+
+	paths := make([]*apiPutUsersPathsRequestItem, 0)
+	if bodyErr := c.BodyParser(&paths); bodyErr != nil {
+		return c.Status(fiber.StatusBadRequest).SendString(bodyErr.Error())
 	}
 
 	if len(paths) == 0 {
@@ -46,18 +39,10 @@ func (s *Server) handleApiPutUsersPaths(c *fiber.Ctx) error {
 
 	newPaths := make([]entity.Path, 0)
 	for _, path := range paths {
-		if path.Path[0] != '/' {
-			return c.Status(fiber.StatusBadRequest).SendString("Paths must start with '/'")
+		if len(path.Path) == 0 || path.Path[0] != '/' {
+			return c.Status(fiber.StatusBadRequest).SendString("Paths must be non-empty and start with '/'")
 		}
-		newPaths = append(newPaths, entity.Path{
-			Path:   path.Path,
-			Deploy: path.Deploy,
-		})
-	}
-
-	id, err := strconv.ParseUint(c.Params("id"), 10, 32)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		newPaths = append(newPaths, entity.NewPath(uint(id), path.Path, path.Deploy))
 	}
 
 	if newPaths, err = s.us.ReplacePaths(uint(id), newPaths); err != nil {
@@ -65,9 +50,9 @@ func (s *Server) handleApiPutUsersPaths(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	resp := make([]*apiPuthUsersPathsResponseItem, len(newPaths))
+	resp := make([]*apiPutUsersPathsResponseItem, len(newPaths))
 	for i, path := range newPaths {
-		resp[i] = &apiPuthUsersPathsResponseItem{
+		resp[i] = &apiPutUsersPathsResponseItem{
 			Path:   path.Path,
 			Deploy: path.Deploy,
 		}
@@ -76,12 +61,12 @@ func (s *Server) handleApiPutUsersPaths(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
-type apiPuthUsersPathsRequestItem struct {
+type apiPutUsersPathsRequestItem struct {
 	Path   string `json:"name"`   // Path
-	Deploy bool   `json:"deploy"` // Allowed to delploy
+	Deploy bool   `json:"deploy"` // Allowed to deploy
 }
 
-type apiPuthUsersPathsResponseItem struct {
+type apiPutUsersPathsResponseItem struct {
 	Path   string `json:"name"`   // Path
-	Deploy bool   `json:"deploy"` // Allowed to delploy
+	Deploy bool   `json:"deploy"` // Allowed to deploy
 }

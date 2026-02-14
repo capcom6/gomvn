@@ -8,18 +8,22 @@ import (
 	"github.com/gomvn/gomvn/internal/entity"
 )
 
-// @Summary      List users
-// @Description  returns list of users
-// @Tags         Users
-// @Security     BasicAuth
-// @Produce      json
-// @Param        limit   query     int  false  "Limit on page"   Default(50)
-// @Param        offset  query     int  false  "Offset of page"  Default(0)
-// @Success      200     {object}  apiGetUsersResponse
-// @Failure      500     {object}  string
-// @Router       /api/users [get]
-func (s *Server) handleApiGetUsers(c *fiber.Ctx) error {
-	limit := getQueryInt(c, "limit", 50)
+//	@Summary		List users
+//	@Description	returns list of users
+//	@Tags			Users
+//	@Security		BasicAuth
+//	@Produce		json
+//	@Param			limit	query		int	false	"Limit on page"		Default(50)
+//	@Param			offset	query		int	false	"Offset of page"	Default(0)
+//	@Success		200		{object}	apiGetUsersResponse
+//	@Failure		500		{object}	string
+//	@Router			/api/users [get]
+//
+// List users.
+func (s *Server) handleAPIGetUsers(c *fiber.Ctx) error {
+	const defaultLimit = 50
+
+	limit := getQueryInt(c, "limit", defaultLimit)
 	offset := getQueryInt(c, "offset", 0)
 
 	users, count, err := s.us.GetAll(limit, offset)
@@ -29,25 +33,25 @@ func (s *Server) handleApiGetUsers(c *fiber.Ctx) error {
 
 	return c.JSON(&apiGetUsersResponse{
 		Total: count,
-		Items: mapToApiGetUsersItem(users),
+		Items: mapToAPIGetUsersItem(users),
 	})
 }
 
-func mapToApiGetUsersItem(users []entity.User) []apiGetUsersItem {
+func mapToAPIGetUsersItem(users []entity.User) []apiGetUsersItem {
 	items := make([]apiGetUsersItem, len(users))
 	for i, user := range users {
 		items[i] = apiGetUsersItem{
-			Id:        user.ID,
+			ID:        user.ID,
 			Name:      user.Name,
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
-			Paths:     mapToApiGetUsersPathItem(user.Paths),
+			Paths:     mapToAPIGetUsersPathItem(user.Paths),
 		}
 	}
 	return items
 }
 
-func mapToApiGetUsersPathItem(paths []entity.Path) []apiGetUsersPathItem {
+func mapToAPIGetUsersPathItem(paths []entity.Path) []apiGetUsersPathItem {
 	items := make([]apiGetUsersPathItem, len(paths))
 	for i, path := range paths {
 		items[i] = apiGetUsersPathItem{
@@ -66,7 +70,7 @@ type apiGetUsersResponse struct {
 }
 
 type apiGetUsersItem struct {
-	Id        uint                  `json:"id"`        // User ID
+	ID        uint                  `json:"id"`        // User ID
 	Name      string                `json:"name"`      // User name
 	CreatedAt time.Time             `json:"createdAt"` // User created at
 	UpdatedAt time.Time             `json:"updatedAt"` // User updated at
@@ -75,7 +79,7 @@ type apiGetUsersItem struct {
 
 type apiGetUsersPathItem struct {
 	Path      string    `json:"name"`      // Path
-	Deploy    bool      `json:"deploy"`    // Allowed to delploy
+	Deploy    bool      `json:"deploy"`    // Allowed to deploy
 	CreatedAt time.Time `json:"createdAt"` // Path created at
 	UpdatedAt time.Time `json:"updatedAt"` // Path updated at
 }
