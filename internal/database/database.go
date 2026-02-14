@@ -1,7 +1,8 @@
 package database
 
 import (
-	"log"
+	"fmt"
+	"log" //nolint:depguard // TODO
 	"os"
 	"time"
 
@@ -16,15 +17,15 @@ import (
 )
 
 const (
-	DRIVER_SQLITE   = "sqlite"
-	DRIVER_MYSQL    = "mysql"
-	DRIVER_POSTGRES = "postgres"
+	DriverSQLite   = "sqlite"
+	DriverMySQL    = "mysql"
+	DriverPostgres = "postgres"
 )
 
 func New(conf *config.App) (*gorm.DB, error) {
 	if err := os.MkdirAll("data", os.ModeDir); err != nil {
 		log.Println("cannot create data directory")
-		return nil, err
+		return nil, fmt.Errorf("failed to create data directory: %w", err)
 	}
 
 	var debugLog logger.Interface
@@ -42,11 +43,11 @@ func New(conf *config.App) (*gorm.DB, error) {
 
 	var dialector gorm.Dialector
 	switch conf.Database.Driver {
-	case DRIVER_MYSQL:
+	case DriverMySQL:
 		dialector = mysql.Open(conf.Database.DSN)
-	case DRIVER_POSTGRES:
+	case DriverPostgres:
 		dialector = postgres.Open(conf.Database.DSN)
-	case DRIVER_SQLITE:
+	case DriverSQLite:
 		dialector = sqlite.Open(conf.Database.DSN)
 	default:
 		dialector = sqlite.Open("data/data.db")
@@ -56,10 +57,12 @@ func New(conf *config.App) (*gorm.DB, error) {
 		Logger: debugLog,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	db.AutoMigrate(&entity.User{}, &entity.Path{})
+	if migrateErr := db.AutoMigrate(new(entity.User), new(entity.Path)); migrateErr != nil {
+		return nil, fmt.Errorf("failed to migrate database: %w", migrateErr)
+	}
 
 	return db, nil
 }

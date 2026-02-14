@@ -11,3 +11,23 @@ type Path struct {
 	CreatedAt time.Time `gorm:"not null"`
 	UpdatedAt time.Time `gorm:"not null"`
 }
+
+func NewPath(userID uint, path string, deploy bool) Path {
+	now := time.Now()
+
+	return Path{
+		UserID:    userID,
+		Path:      path,
+		Deploy:    deploy,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+}
+
+func NewPathID(userID uint, path string) Path {
+	//nolint:exhaustruct // partial constructor
+	return Path{
+		UserID: userID,
+		Path:   path,
+	}
+}

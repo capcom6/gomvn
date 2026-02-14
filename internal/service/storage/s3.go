@@ -1,8 +1,10 @@
 package storage
 
 import (
+	"fmt"
 	"io"
 	"io/fs"
+	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -13,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/samber/lo"
 )
 
 const (
@@ -80,12 +83,12 @@ func (a *s3Adapter) ListItems(pathname string) ([]fileInfo, error) {
 		Prefix:    aws.String(prefix),
 	})
 	if err != nil {
-		if aerr, ok := err.(awserr.RequestFailure); ok {
-			if aerr.StatusCode() == 404 {
+		if aerr, ok := lo.ErrorsAs[awserr.RequestFailure](err); ok {
+			if aerr.StatusCode() == http.StatusNotFound {
 				return nil, fs.ErrNotExist
 			}
 		}
-		return nil, err
+		return nil, fmt.Errorf("failed to list items at %s: %w", pathname, err)
 	}
 
 	result := []fileInfo{}
@@ -116,14 +119,13 @@ func (a *s3Adapter) Read(pathname string) (io.ReadCloser, error) {
 		Key:    aws.String(a.fullname(pathname)),
 	})
 	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
+		if aerr, ok := lo.ErrorsAs[awserr.Error](err); ok {
 			switch aerr.Code() {
-			case s3.ErrCodeNoSuchBucket:
-			case s3.ErrCodeNoSuchKey:
+			case s3.ErrCodeNoSuchBucket, s3.ErrCodeNoSuchKey:
 				return nil, fs.ErrNotExist
 			}
 		}
-		return nil, err
+		return nil, fmt.Errorf("failed to read file at %s: %w", pathname, err)
 	}
 
 	return resp.Body, nil
@@ -132,21 +134,21 @@ func (a *s3Adapter) Read(pathname string) (io.ReadCloser, error) {
 func (a *s3Adapter) Write(pathname string, r io.Reader) error {
 	tmp, err := os.CreateTemp("", "aws-")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create temporary file: %w", err)
 	}
 	defer func() {
-		tmp.Close()
-		os.Remove(tmp.Name())
+		_ = tmp.Close()
+		_ = os.Remove(tmp.Name())
 	}()
 
 	_, err = io.Copy(tmp, r)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to write temporary file: %w", err)
 	}
 
 	_, err = tmp.Seek(0, 0)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to seek temporary file: %w", err)
 	}
 
 	_, err = a.s3.PutObject(&s3.PutObjectInput{
@@ -155,7 +157,11 @@ func (a *s3Adapter) Write(pathname string, r io.Reader) error {
 		Key:    aws.String(a.fullname(pathname)),
 	})
 
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to write file at %s: %w", pathname, err)
+	}
+
+	return nil
 }
 
 func (a *s3Adapter) fullname(pathname string) string {

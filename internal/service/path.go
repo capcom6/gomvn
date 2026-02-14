@@ -9,17 +9,20 @@ import (
 	"github.com/gomvn/gomvn/internal/config"
 )
 
+type PathService struct {
+	repository []string
+}
+
 func NewPathService(conf *config.App) *PathService {
 	return &PathService{
 		repository: conf.Repository,
 	}
 }
 
-type PathService struct {
-	repository []string
-}
-
 func (s *PathService) NormalizePath(path string) string {
+	if len(path) == 0 {
+		return ""
+	}
 	if path[0] == '/' {
 		path = path[1:]
 	}
@@ -39,8 +42,10 @@ func (s *PathService) NormalizePath(path string) string {
 
 func (s *PathService) ParsePath(c *fiber.Ctx) (string, error) {
 	path := s.NormalizePath(c.Path())
-	if strings.Count(path, "/") < 3 {
-		return "", fmt.Errorf("path should be repository/group/artifact")
+
+	const minSlashes = 3
+	if strings.Count(path, "/") < minSlashes {
+		return "", fmt.Errorf("%w: path should be repository/group/artifact", ErrInvalidPath)
 	}
 	return path, nil
 }

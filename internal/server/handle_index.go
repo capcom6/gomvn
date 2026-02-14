@@ -5,8 +5,13 @@ import (
 )
 
 func (s *Server) handleIndex(c *fiber.Ctx) error {
-	return c.Render("index", fiber.Map{
+	err := c.Render("index", fiber.Map{
 		"Name":         s.name,
 		"Repositories": s.rs.GetRepositories(),
 	})
+	if err != nil {
+		// TODO: log err for debugging
+		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+	}
+	return nil
 }

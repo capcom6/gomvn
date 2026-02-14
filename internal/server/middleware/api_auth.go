@@ -5,17 +5,18 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gomvn/gomvn/internal/server/basicauth"
-	"github.com/gomvn/gomvn/internal/service/user"
+	"github.com/gomvn/gomvn/internal/service/users"
 )
 
-func NewApiAuth(us *user.Service) func(*fiber.Ctx) error {
+func NewAPIAuth(us *users.Service) func(*fiber.Ctx) error {
 	return basicauth.New(basicauth.Config{
-		Authorizer: func(c *fiber.Ctx, name string, token string) bool {
+		Next: nil,
+		Authorizer: func(_ *fiber.Ctx, name string, token string) bool {
 			u, err := us.GetByName(name)
 			if err != nil || !u.Admin {
 				return false
 			}
-			if err := bcrypt.CompareHashAndPassword([]byte(u.TokenHash), []byte(token)); err != nil {
+			if hashErr := bcrypt.CompareHashAndPassword([]byte(u.TokenHash), []byte(token)); hashErr != nil {
 				return false
 			}
 			return true
