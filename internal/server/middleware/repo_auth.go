@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,37 +8,37 @@ import (
 
 	"github.com/gomvn/gomvn/internal/server/basicauth"
 	"github.com/gomvn/gomvn/internal/service"
-	"github.com/gomvn/gomvn/internal/service/user"
+	"github.com/gomvn/gomvn/internal/service/users"
 )
 
-func NewRepoAuth(us *user.Service, ps *service.PathService, needsDeploy bool) func(*fiber.Ctx) error {
+func NewRepoAuth(us *users.Service, ps *service.PathService, needsDeploy bool) func(*fiber.Ctx) error {
 	return basicauth.New(basicauth.Config{
-		Next: func(ctx *fiber.Ctx) bool {
+		Next: func(_ *fiber.Ctx) bool {
 			permissions := us.GetDefaultPermissions()
 			if needsDeploy {
 				return permissions.Deploy
-			} else {
-				return permissions.View
 			}
+			return permissions.View
 		},
 		Authorizer: func(c *fiber.Ctx, name string, token string) bool {
 			u, err := us.GetByName(name)
 			if err != nil {
 				return false
 			}
-			if err := bcrypt.CompareHashAndPassword([]byte(u.TokenHash), []byte(token)); err != nil {
+			if hashErr := bcrypt.CompareHashAndPassword([]byte(u.TokenHash), []byte(token)); hashErr != nil {
 				return false
 			}
 
 			_, current, _, err := ps.ParsePathParts(c)
-			if err != nil && needsDeploy {
-				log.Printf("path error: %v", err)
-				return false
+			if err != nil {
+				if needsDeploy {
+					return false
+				}
+				// Non-deploy request with unparseable path — fall through to path matching
 			}
 
 			paths, err := us.GetPaths(u)
 			if err != nil {
-				log.Printf("cannot fetch user paths: %v", err)
 				return false
 			}
 
@@ -50,7 +49,6 @@ func NewRepoAuth(us *user.Service, ps *service.PathService, needsDeploy bool) fu
 				}
 			}
 
-			log.Printf("not found allowed path for '%s', user paths: %v", current, paths)
 			return false
 		},
 	})

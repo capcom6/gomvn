@@ -1,7 +1,8 @@
-package user
+package users
 
 import (
-	"log"
+	"fmt"
+	"log" //nolint:depguard // TODO
 
 	"gorm.io/gorm"
 
@@ -10,7 +11,9 @@ import (
 
 func Initialize(db *gorm.DB, us *Service) error {
 	var count int64
-	db.Model(&entity.User{}).Count(&count)
+	if err := db.Model((*entity.User)(nil)).Count(&count).Error; err != nil {
+		return fmt.Errorf("failed to count users: %w", err)
+	}
 
 	if count == 0 {
 		log.Println("Initializing first user...")

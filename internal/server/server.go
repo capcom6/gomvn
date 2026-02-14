@@ -1,7 +1,8 @@
 package server
 
 import (
-	"log"
+	"fmt"
+	"log" //nolint:depguard // TODO
 	"os"
 	"time"
 
@@ -15,18 +16,26 @@ import (
 	"github.com/gomvn/gomvn/internal/server/middleware"
 	"github.com/gomvn/gomvn/internal/service"
 	"github.com/gomvn/gomvn/internal/service/storage"
-	"github.com/gomvn/gomvn/internal/service/user"
+	"github.com/gomvn/gomvn/internal/service/users"
 )
 
-func New(conf *config.App, ps *service.PathService, storage *storage.Storage, us *user.Service, rs *service.RepoService) *Server {
+func New(
+	conf *config.App,
+	ps *service.PathService,
+	storage *storage.Storage,
+	us *users.Service,
+	rs *service.RepoService,
+) *Server {
+	const defaultTimeout = time.Minute
+
 	engine := html.New("./views", ".html")
 
 	app := fiber.New(fiber.Config{
-		IdleTimeout:           5 * time.Second,
+		IdleTimeout:           defaultTimeout,
 		DisableStartupMessage: true,
 		Views:                 engine,
+		StreamRequestBody:     true,
 	})
-	app.Server().StreamRequestBody = true
 
 	app.Use(recover.New())
 	app.Use(compress.New())
@@ -42,7 +51,7 @@ func New(conf *config.App, ps *service.PathService, storage *storage.Storage, us
 		rs:      rs,
 	}
 
-	registerApi(app, us, server)
+	registerAPI(app, us, server)
 
 	app.Static("/admin", "./views/admin")
 
@@ -65,7 +74,8 @@ func New(conf *config.App, ps *service.PathService, storage *storage.Storage, us
 			if os.IsNotExist(err) {
 				return fiber.ErrNotFound
 			}
-			return err
+			log.Printf("failed to open file at %s: %v", pathname, err)
+			return fiber.ErrInternalServerError
 		}
 
 		c.Set(fiber.HeaderContentType, contentType)
@@ -79,17 +89,17 @@ func New(conf *config.App, ps *service.PathService, storage *storage.Storage, us
 	return server
 }
 
-func registerApi(app *fiber.App, us *user.Service, server *Server) {
+func registerAPI(app *fiber.App, us *users.Service, server *Server) {
 	api := app.Group("/api")
-	api.Use(middleware.NewApiAuth(us))
-	api.Get("/users", server.handleApiGetUsers)
-	api.Post("/users", server.handleApiPostUsers)
-	api.Put("/users/:id", server.handleApiPutUsers)
-	api.Delete("/users/:id", server.handleApiDeleteUsers)
+	api.Use(middleware.NewAPIAuth(us))
+	api.Get("/users", server.handleAPIGetUsers)
+	api.Post("/users", server.handleAPIPostUsers)
+	api.Put("/users/:id", server.handleAPIPutUsers)
+	api.Delete("/users/:id", server.handleAPIDeleteUsers)
 
-	api.Get("/users/:id/refresh", server.handleApiGetUsersRefresh)
+	api.Get("/users/:id/refresh", server.handleAPIGetUsersRefresh)
 
-	api.Put("/users/:id/paths", server.handleApiPutUsersPaths)
+	api.Put("/users/:id/paths", server.handleAPIPutUsersPaths)
 }
 
 type Server struct {
@@ -98,16 +108,23 @@ type Server struct {
 	listen  string
 	ps      *service.PathService
 	storage *storage.Storage
-	us      *user.Service
+	us      *users.Service
 	rs      *service.RepoService
 }
 
 func (s *Server) Listen() error {
 	log.Printf("GoMVN self-hosted repository listening on %s\n", s.listen)
-	go s.app.Listen(s.listen)
+	go func() {
+		if err := s.app.Listen(s.listen); err != nil {
+			log.Fatalf("server listen error: %v", err)
+		}
+	}()
 	return nil
 }
 
 func (s *Server) Shutdown() error {
-	return s.app.Shutdown()
+	if err := s.app.Shutdown(); err != nil {
+		return fmt.Errorf("failed to shutdown server: %w", err)
+	}
+	return nil
 }

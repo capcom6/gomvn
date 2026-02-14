@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	"gopkg.in/yaml.v2"
@@ -17,13 +18,17 @@ type App struct {
 }
 
 func NewAppConfig(file string) (*App, error) {
+	if file == "" {
+		file = "config.yml"
+	}
+
 	var conf App
 	yamlFile, err := os.ReadFile(file)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
-	if err := yaml.Unmarshal(yamlFile, &conf); err != nil {
-		return nil, err
+	if ymlErr := yaml.Unmarshal(yamlFile, &conf); ymlErr != nil {
+		return nil, fmt.Errorf("failed to unmarshal config file: %w", ymlErr)
 	}
 
 	if conf.Permissions.Index == nil {
