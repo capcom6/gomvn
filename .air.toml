@@ -3,8 +3,9 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  bin = "./tmp/main.exe"
-  cmd = "go build -o ./tmp/main.exe ."
+  args_bin = []
+  bin = "./tmp/main"
+  cmd = "go build -o ./tmp/main ."
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []
@@ -13,10 +14,17 @@ tmp_dir = "tmp"
   follow_symlink = false
   full_bin = ""
   include_dir = []
-  include_ext = ["go", "tpl", "tmpl", "html", "yml"]
-  kill_delay = "0s"
+  include_ext = ["go", "tpl", "tmpl", "html"]
+  include_file = []
+  kill_delay = "1s"
   log = "build-errors.log"
-  send_interrupt = false
+  poll = false
+  poll_interval = 0
+  post_cmd = []
+  pre_cmd = []
+  rerun = false
+  rerun_delay = 500
+  send_interrupt = true
   stop_on_error = true
 
 [color]
@@ -27,10 +35,18 @@ tmp_dir = "tmp"
   watcher = "cyan"
 
 [log]
+  main_only = false
+  silent = false
   time = false
 
 [misc]
-  clean_on_exit = false
+  clean_on_exit = true
+
+[proxy]
+  app_port = 0
+  enabled = false
+  proxy_port = 0
 
 [screen]
   clear_on_rebuild = false
+  keep_scroll = true
