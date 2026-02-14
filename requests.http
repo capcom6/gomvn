@@ -1,0 +1,60 @@
+@baseURL=http://localhost:8080
+@apiURL={{baseURL}}/api
+@apiCredentials={{$dotenv API_CREDENTIALS}}
+
+###
+# Index endpoint - check if server is running
+GET {{baseURL}} HTTP/1.1
+
+###
+# Get all users
+GET {{apiURL}}/users HTTP/1.1
+Authorization: {{apiCredentials}}
+
+###
+# Create a new user
+# Returns user ID, name, and access token
+# @name createUser
+POST {{apiURL}}/users HTTP/1.1
+Authorization: {{apiCredentials}}
+Content-Type: application/json
+
+{
+  "name": "user-{{$randomInt 1 100}}",
+  "admin": false,
+  "deploy": true,
+  "allowed": ["/path/to/repo1", "/path/to/repo2"]
+}
+
+###
+# Update user (modify deploy and allowed paths)
+@userID={{createUser.response.body.$.id}}
+PUT {{apiURL}}/users/{{userID}} HTTP/1.1
+Authorization: {{apiCredentials}}
+Content-Type: application/json
+
+{
+  "deploy": true,
+  "allowed": ["/updated/path"]
+}
+
+###
+# Refresh user token (regenerate access token)
+GET {{apiURL}}/users/{{userID}}/refresh HTTP/1.1
+Authorization: {{apiCredentials}}
+
+###
+# Replace user's allowed paths
+PUT {{apiURL}}/users/{{userID}}/paths HTTP/1.1
+Authorization: {{apiCredentials}}
+Content-Type: application/json
+
+[
+  { "name": "/new/path1", "deploy": true },
+  { "name": "/new/path2", "deploy": false }
+]
+
+###
+# Delete user
+DELETE {{apiURL}}/users/{{userID}} HTTP/1.1
+Authorization: {{apiCredentials}}
