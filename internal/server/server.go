@@ -1,9 +1,10 @@
 package server
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"log" //nolint:depguard // TODO
-	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -71,7 +72,7 @@ func New(
 		pathname := c.Params("+")
 		file, contentType, err := storage.Open(pathname)
 		if err != nil {
-			if os.IsNotExist(err) {
+			if errors.Is(err, fs.ErrNotExist) {
 				return fiber.ErrNotFound
 			}
 			log.Printf("failed to open file at %s: %v", pathname, err)
