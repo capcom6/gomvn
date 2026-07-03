@@ -10,7 +10,7 @@ require (
 	github.com/samber/lo v1.52.0
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/fx v1.12.0
-	golang.org/x/crypto v0.48.0
+	golang.org/x/crypto v0.51.0
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/mysql v1.3.5
 	gorm.io/driver/postgres v1.3.8
@@ -56,10 +56,10 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/dig v1.9.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	golang.org/x/mod v0.32.0 // indirect
-	golang.org/x/net v0.50.0 // indirect
-	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.43.0 // indirect
-	golang.org/x/text v0.34.0 // indirect
-	golang.org/x/tools v0.41.0 // indirect
+	golang.org/x/mod v0.35.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/tools v0.44.0 // indirect
 )
