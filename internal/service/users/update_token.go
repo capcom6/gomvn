@@ -30,8 +30,8 @@ func (s *Service) UpdateToken(id uint) (*entity.User, string, error) {
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		return tx.Model(&user).
 			Updates(map[string]any{
-				"TokenHash": string(tokenHash),
-				"UpdatedAt": time.Now(),
+				"TokenHash":    string(tokenHash),
+				fieldUpdatedAt: time.Now(),
 			}).
 			Error
 	})
