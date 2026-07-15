@@ -19,7 +19,7 @@ func (s *Service) Update(id uint, deploy bool, paths []string) (*entity.User, er
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		for _, path := range paths {
 			userPath := entity.NewPathID(user.ID, path)
-			q := tx.Assign(map[string]any{"Deploy": deploy, "UpdatedAt": now}).
+			q := tx.Assign(map[string]any{"Deploy": deploy, fieldUpdatedAt: now}).
 				FirstOrCreate(&userPath)
 			if err := q.Error; err != nil {
 				return err
@@ -27,7 +27,7 @@ func (s *Service) Update(id uint, deploy bool, paths []string) (*entity.User, er
 		}
 
 		return tx.Model(&user).
-			Updates(map[string]any{"UpdatedAt": now}).
+			Updates(map[string]any{fieldUpdatedAt: now}).
 			Error
 	})
 	if err != nil {

@@ -63,7 +63,7 @@ func (s *Service) ReplacePaths(id uint, paths []entity.Path) ([]entity.Path, err
 			return err
 		}
 
-		return tx.Select("UpdatedAt").Save(&user).Error
+		return tx.Select(fieldUpdatedAt).Save(&user).Error
 	},
 	)
 	if err != nil {

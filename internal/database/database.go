@@ -37,6 +37,7 @@ func New(conf *config.App) (*gorm.DB, error) {
 				LogLevel:                  logger.Info, // Log level
 				IgnoreRecordNotFoundError: true,        // Ignore ErrRecordNotFound error for logger
 				Colorful:                  true,        // Disable color
+				ParameterizedQueries:      false,
 			},
 		)
 	}
