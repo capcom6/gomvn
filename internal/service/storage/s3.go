@@ -1,21 +1,21 @@
 package storage
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
-	"net/http"
 	"os"
 	"path"
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/samber/lo"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 const (
@@ -28,9 +28,7 @@ const (
 )
 
 type s3Adapter struct {
-	session *session.Session
-	s3      *s3.S3
-
+	s3     *s3.Client
 	bucket string
 	prefix string
 }
@@ -41,17 +39,30 @@ func newS3Adapter(options map[string]string) *s3Adapter {
 	endpoint := options[OptionEndpoint]
 	region := options[OptionRegion]
 
-	cfg := aws.NewConfig().
-		WithCredentials(credentials.NewStaticCredentials(login, password, "")).
-		WithRegion(region).
-		WithEndpoint(endpoint)
+	var optFns []func(*config.LoadOptions) error
+	if region != "" {
+		optFns = append(optFns, config.WithRegion(region))
+	}
+	if login != "" || password != "" {
+		optFns = append(optFns, config.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(login, password, ""),
+		))
+	}
 
-	s, _ := session.NewSession(cfg)
+	cfg, err := config.LoadDefaultConfig(context.Background(), optFns...)
+	if err != nil {
+		panic(err)
+	}
+
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		if endpoint != "" {
+			o.BaseEndpoint = aws.String(endpoint)
+			o.UsePathStyle = true
+		}
+	})
 
 	return &s3Adapter{
-		session: s,
-		s3:      s3.New(s),
-
+		s3:     client,
 		bucket: options[OptionBucket],
 		prefix: options[OptionPrefix],
 	}
@@ -77,53 +88,55 @@ func (a *s3Adapter) IsRegularFile(pathname string) (bool, error) {
 func (a *s3Adapter) ListItems(pathname string) ([]fileInfo, error) {
 	prefix := a.fullname(pathname) + "/"
 
-	out, err := a.s3.ListObjectsV2(&s3.ListObjectsV2Input{
-		Bucket:    aws.String(a.bucket),
+	paginator := s3.NewListObjectsV2Paginator(a.s3, &s3.ListObjectsV2Input{
+		Bucket:    &a.bucket,
 		Delimiter: aws.String("/"),
-		Prefix:    aws.String(prefix),
+		Prefix:    &prefix,
 	})
-	if err != nil {
-		if aerr, ok := lo.ErrorsAs[awserr.RequestFailure](err); ok {
-			if aerr.StatusCode() == http.StatusNotFound {
-				return nil, fs.ErrNotExist
-			}
-		}
-		return nil, fmt.Errorf("failed to list items at %s: %w", pathname, err)
-	}
 
 	result := []fileInfo{}
-	for _, v := range out.CommonPrefixes {
-		result = append(result, fileInfo{
-			IsDir:   true,
-			Name:    strings.Replace(*v.Prefix, prefix, "", 1),
-			Size:    0,
-			ModTime: time.Now(),
-		})
-	}
+	for paginator.HasMorePages() {
+		out, err := paginator.NextPage(context.Background())
+		if err != nil {
+			var nf *types.NoSuchBucket
+			if errors.As(err, &nf) {
+				return nil, fs.ErrNotExist
+			}
+			return nil, fmt.Errorf("failed to list items at %s: %w", pathname, err)
+		}
 
-	for _, v := range out.Contents {
-		result = append(result, fileInfo{
-			IsDir:   false,
-			Name:    strings.Replace(*v.Key, prefix, "", 1),
-			Size:    *v.Size,
-			ModTime: *v.LastModified,
-		})
+		for _, v := range out.CommonPrefixes {
+			result = append(result, fileInfo{
+				IsDir:   true,
+				Name:    strings.Replace(*v.Prefix, prefix, "", 1),
+				Size:    0,
+				ModTime: time.Now(),
+			})
+		}
+
+		for _, v := range out.Contents {
+			result = append(result, fileInfo{
+				IsDir:   false,
+				Name:    strings.Replace(*v.Key, prefix, "", 1),
+				Size:    *v.Size,
+				ModTime: *v.LastModified,
+			})
+		}
 	}
 
 	return result, nil
 }
 
 func (a *s3Adapter) Read(pathname string) (io.ReadCloser, error) {
-	resp, err := a.s3.GetObject(&s3.GetObjectInput{
-		Bucket: aws.String(a.bucket),
+	resp, err := a.s3.GetObject(context.Background(), &s3.GetObjectInput{
+		Bucket: &a.bucket,
 		Key:    aws.String(a.fullname(pathname)),
 	})
 	if err != nil {
-		if aerr, ok := lo.ErrorsAs[awserr.Error](err); ok {
-			switch aerr.Code() {
-			case s3.ErrCodeNoSuchBucket, s3.ErrCodeNoSuchKey:
-				return nil, fs.ErrNotExist
-			}
+		var nsk *types.NoSuchKey
+		var nsb *types.NoSuchBucket
+		if errors.As(err, &nsk) || errors.As(err, &nsb) {
+			return nil, fs.ErrNotExist
 		}
 		return nil, fmt.Errorf("failed to read file at %s: %w", pathname, err)
 	}
@@ -151,9 +164,9 @@ func (a *s3Adapter) Write(pathname string, r io.Reader) error {
 		return fmt.Errorf("failed to seek temporary file: %w", err)
 	}
 
-	_, err = a.s3.PutObject(&s3.PutObjectInput{
+	_, err = a.s3.PutObject(context.Background(), &s3.PutObjectInput{
 		Body:   tmp,
-		Bucket: aws.String(a.bucket),
+		Bucket: &a.bucket,
 		Key:    aws.String(a.fullname(pathname)),
 	})
 
