@@ -1,274 +1,416 @@
-<a id="readme-top"></a>
+<div align="center">
+  <a href="https://github.com/capcom6/gomvn">
+    <img src="assets/logo.png" alt="GoMVN logo" width="96" height="96">
+  </a>
+
+  <h1>GoMVN</h1>
+
+  <p>A self-hosted HTTP repository for private Maven-format artifacts.</p>
+
+  <p>
+    <a href="https://capcom6.github.io/gomvn/">API reference</a>
+    ·
+    <a href="https://github.com/capcom6/gomvn/releases">Releases</a>
+    ·
+    <a href="https://github.com/capcom6/gomvn/issues">Issues</a>
+  </p>
+</div>
 
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![project_license][license-shield]][license-url]
+[![License][license-shield]][license-url]
 
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/capcom6/gomvn">
-    <img src="assets/logo.png" alt="Logo" width="80" height="80">
-  </a>
+## Table of Contents
 
-  <h3 align="center">GoMVN</h3>
-
-  <p align="center">
-    A lightweight self-hosted repository manager for your private Maven artifacts.
-    <br />
-    <a href="https://github.com/capcom6/gomvn"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/capcom6/gomvn/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
-    ·
-    <a href="https://github.com/capcom6/gomvn/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
-  </p>
-</div>
-
-<!-- TABLE OF CONTENTS -->
-- [About The Project](#about-the-project)
-  - [Built With](#built-with)
+- [Table of Contents](#table-of-contents)
+- [About the Project](#about-the-project)
+- [Features](#features)
+- [Built With](#built-with)
 - [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
+  - [Container Image](#container-image)
+  - [Release Archives](#release-archives)
 - [Configuration](#configuration)
+  - [Selecting a Configuration File](#selecting-a-configuration-file)
+  - [Server and Permissions](#server-and-permissions)
+  - [Database](#database)
+  - [Repositories](#repositories)
   - [Storage](#storage)
-- [User Guide](#user-guide)
+- [First Start and User Management](#first-start-and-user-management)
 - [Usage](#usage)
-  - [How to create Java library](#how-to-create-java-library)
-  - [How to create Android library](#how-to-create-android-library)
-  - [How to use your private Maven repository](#how-to-use-your-private-maven-repository)
-- [Roadmap](#roadmap)
+  - [Publishing with Gradle](#publishing-with-gradle)
+  - [Consuming with Gradle](#consuming-with-gradle)
+  - [Android and Other Clients](#android-and-other-clients)
+- [Security](#security)
+- [Development](#development)
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
 
+## About the Project
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
+GoMVN is a repository server for teams and organizations that need to publish and read private Java, Android, or other Maven-format artifacts on infrastructure they control. It provides artifact upload and download over HTTP, browsable repository indexes, token-based user access, and pluggable database and artifact storage backends.
 
-GoMVN is a lightweight, self-hosted Maven repository manager written in Go. It allows you to host your private Maven artifacts securely within your own infrastructure. With support for both release and snapshot repositories, user authentication, and flexible storage options, it's perfect for teams and organizations that need to manage their Java/Android libraries privately.
+The `release` and `snapshot` names used in the sample configuration are configurable route prefixes. GoMVN does not enforce release immutability or Maven snapshot-version policies.
 
-### Built With
+## Features
 
-* [![Go][Go.dev]][Go-url]
-* [![Docker][Docker.com]][Docker-url]
-* [![GORM][GORM.io]][GORM-url]
+- Upload artifacts with authenticated HTTP `PUT` requests
+- Download artifacts and generated directory indexes with `GET`
+- Serve configurable repository paths such as `release` and `snapshot`
+- Manage repository users through a browser admin interface and API
+- Generate user tokens and store only their bcrypt hashes
+- Restrict each user to allowed repository paths and deploy permissions
+- Use SQLite, MySQL, or PostgreSQL for application data
+- Store artifacts on the local filesystem or in an S3-compatible bucket
+- Use the standard AWS credential chain when S3 credentials are omitted
+- Build multi-platform release archives and container images with GoReleaser
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+## Built With
 
-<!-- GETTING STARTED -->
+- [Go](https://go.dev/) 1.26
+- [Fiber](https://gofiber.io/)
+- [GORM](https://gorm.io/)
+- [Docker](https://www.docker.com/)
+- [GoReleaser](https://goreleaser.com/)
+
 ## Getting Started
 
-### Prerequisites
+### Container Image
 
-- Docker installed on your system
-- A database (SQLite, MySQL, or PostgreSQL) - SQLite is used by default
+Prerequisites:
 
-### Installation
+- Docker
+- A reachable MySQL or PostgreSQL database
+- A configuration file and a writable artifact directory
 
-Use Docker to install this tool. The image is available at [GitHub](https://ghcr.io/capcom6/gomvn).
+Copy the sample configuration and select an external database:
 
-For better accessibility, map these Docker volumes:
+```bash
+cp configs/config.example.yml config.yml
+```
 
-| Path              | Description                                                                                  |
-| ----------------- | -------------------------------------------------------------------------------------------- |
-| `/app/data`       | app data for persistency                                                                     |
-| `/app/config.yml` | configuration from outside of container, copy [default config](./configs/config.example.yml) |
+```yaml
+database:
+  driver: postgres
+  dsn: host=postgres.example.com user=gomvn password=change-me dbname=gomvn port=5432 sslmode=require
+```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+Keep the remaining sample settings, including local artifact storage at `data/repository`. The database host must be reachable from the container; `localhost` inside the container refers to the container itself.
 
-<!-- CONFIGURATION -->
+Create the data directory and start a pinned release image:
+
+```bash
+mkdir -p data
+
+docker run -d \
+  --name gomvn \
+  --restart unless-stopped \
+  --user "$(id -u):$(id -g)" \
+  --publish 127.0.0.1:8080:8080 \
+  --mount type=bind,source="$(pwd)/config.yml",target=/app/config.yml,readonly \
+  --mount type=bind,source="$(pwd)/data",target=/app/data \
+  ghcr.io/capcom6/gomvn:latest
+```
+
+Running the container as the host user makes the bind-mounted data directory writable. If S3 storage is configured instead, the directory is still created during database initialization, so keeping the mount avoids permission problems.
+
+Read the generated administrator token from the logs:
+
+```bash
+docker logs gomvn
+```
+
+Then open `http://127.0.0.1:8080/admin/` or check the public index:
+
+```bash
+curl -fsS http://127.0.0.1:8080/
+```
+
+Pin a version tag or digest for repeatable deployments instead of relying on `latest`.
+
+### Release Archives
+
+GoReleaser publishes `tar.gz` archives for Linux and macOS and `zip` archives for Windows. Download the archive matching your operating system and CPU architecture from the [releases page](https://github.com/capcom6/gomvn/releases).
+
+The current archive configuration packages the binary but does not declare the runtime `views` directory as an extra archive file. From a source checkout of the same release tag, place the matching configuration and views beside the extracted binary:
+
+```bash
+sudo mkdir -p /opt/gomvn
+sudo chown "$(id -u):$(id -g)" /opt/gomvn
+tar -xzf gomvn_Linux_x86_64.tar.gz -C /opt/gomvn
+
+cp -R /path/to/gomvn-source/views /opt/gomvn/views
+cp /path/to/gomvn-source/configs/config.example.yml /opt/gomvn/config.yml
+```
+
+Edit `/opt/gomvn/config.yml` to use MySQL or PostgreSQL, then start the server from the directory containing `views`:
+
+```bash
+cd /opt/gomvn
+./gomvn --config /opt/gomvn/config.yml
+```
+
+On Windows, extract the ZIP and run `gomvn.exe` from the directory containing `config.yml` and `views`.
+
 ## Configuration
 
-You can use `config.yml` to configure the service. Default `config.yml` is located in the same directory as the executable. To specify a different config file, use `--config /path/to/config.yml`.
+The application reads its main settings from YAML. Relative database and storage paths resolve from the process working directory.
 
-Available configuration options:
+### Selecting a Configuration File
 
-| Path               | Description                                                            |
-| ------------------ | ---------------------------------------------------------------------- |
-| name               | name of the repository                                                 |
-| debug              | enable debug output                                                    |
-| permissions        | default permissions for the repository                                 |
-| permissions.index  | anonymous access to index page                                         |
-| permissions.view   | anonymous access to read artifacts                                     |
-| permissions.deploy | anonymous access to deploy artifacts                                   |
-| server             | http server configuration                                              |
-| server.port        | port of the http server                                                |
-| server.host        | host of the http server                                                |
-| database           | database configuration                                                 |
-| database.driver    | database driver to use (`sqlite`, `mysql`, `postgres`)                 |
-| database.dsn       | database dsn, see https://gorm.io/docs/connecting_to_the_database.html |
-| repository         | list of available repositories                                         |
-| storage            | artifacts storage configuration                                        |
-| storage.driver     | storage driver (`local` or `s3`)                                       |
-| storage.options    | configuration options for storage driver, see below                    |
+The server uses this order:
+
+1. The `--config` command-line flag
+2. The `CONFIG_PATH` environment variable
+3. `config.yml` in the process working directory
+
+Examples:
+
+```bash
+CONFIG_PATH=/opt/gomvn/config.yml ./gomvn
+./gomvn --config /opt/gomvn/config.yml
+```
+
+### Server and Permissions
+
+| YAML path            | Type    | Sample or behavior                                      |
+| -------------------- | ------- | ------------------------------------------------------- |
+| `name`               | String  | Repository name shown by the index                      |
+| `debug`              | Boolean | Enables GORM SQL logging; defaults to `false`           |
+| `permissions.index`  | Boolean | Anonymous index access; defaults to `true` when omitted |
+| `permissions.view`   | Boolean | Anonymous artifact reads; defaults to `false`           |
+| `permissions.deploy` | Boolean | Anonymous artifact uploads; defaults to `false`         |
+| `server.host`        | String  | Listen address; sample value is `0.0.0.0`               |
+| `server.port`        | Integer | Listen port; sample value is `8080`                     |
+
+Authenticated repository access is authorized against the user's allowed paths. The initial admin user has deploy access to `/`, so it can both publish and read all configured repository paths.
+
+### Database
+
+| YAML path         | Description                      |
+| ----------------- | -------------------------------- |
+| `database.driver` | `sqlite`, `mysql`, or `postgres` |
+| `database.dsn`    | Driver-specific data source name |
+
+### Repositories
+
+`repository` is a list of URL path prefixes:
+
+```yaml
+repository:
+  - release
+  - snapshot
+```
+
+The names are user-defined. They do not automatically apply versioning or immutability rules.
 
 ### Storage
 
-Options for `local` storage driver:
+Choose `local` or `s3` with `storage.driver`.
 
-- `root` - path to storage root.
+For local storage:
 
-Options for `s3` storage driver:
+```yaml
+storage:
+  driver: local
+  options:
+    root: data/repository
+```
 
-- `login` - user id/login;
-- `password` - user secret/password;
-- `endpoint`;
-- `region`;
-- `bucket`;
-- `prefix`.
+For S3-compatible storage:
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+```yaml
+storage:
+  driver: s3
+  options:
+    login: your-access-key
+    password: your-secret-key
+    region: us-east-1
+    bucket: gomvn-artifacts
+    prefix: repository
+    endpoint: https://s3.example.com
+```
 
-<!-- USER GUIDE -->
-## User Guide
+Supported S3 options are:
 
-On first run, admin account and his token is generated and printed into console.
+| Option     | Description                                                                                                                                       |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `login`    | Static access key; if either `login` or `password` is non-empty, the static credential provider takes precedence over AWS environment credentials |
+| `password` | Static secret key used by the same static credential provider                                                                                     |
+| `region`   | AWS region; overrides the region from the default AWS configuration when set                                                                      |
+| `bucket`   | Bucket containing the repository tree                                                                                                             |
+| `prefix`   | Key prefix inside the bucket                                                                                                                      |
+| `endpoint` | Optional custom S3 endpoint; enables path-style addressing                                                                                        |
 
-You will need this to access [management API](https://capcom6.github.io/gomvn/) or local admin pages (http://my-private-repository.example.com/admin/), which is used to set user access.
+The AWS default credential chain is used only when both YAML `login` and `password` are empty. Setting either value activates the static credential provider and bypasses AWS credential environment variables. A configured YAML `endpoint` takes precedence over AWS SDK endpoint environment settings. Store static S3 credentials through a protected configuration file or secret mount rather than committing them.
 
-If you don't have more users, you can use already created admin account to deploy and access your maven artifacts.
+## First Start and User Management
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+When the user table is empty, GoMVN creates an `admin` user with deploy access to `/` and prints its ID, username, and generated token to the server log. The plaintext token is not printed again because only its bcrypt hash is stored.
 
-<!-- USAGE -->
+Use the administrator credentials to:
+
+- Open the browser admin interface at `/admin/`
+- List, create, update, and delete repository users
+- Refresh a user's token
+- Replace a user's allowed paths and per-path deploy permissions
+
+Example authenticated API request:
+
+```bash
+curl -fsS \
+  --user "admin:${GOMVN_TOKEN}" \
+  http://127.0.0.1:8080/api/users
+```
+
+Example user creation:
+
+```bash
+curl -fsS \
+  --user "admin:${GOMVN_TOKEN}" \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "ci",
+    "admin": false,
+    "deploy": true,
+    "allowed": ["/release/com/example/"]
+  }' \
+  http://127.0.0.1:8080/api/users
+```
+
+The create response contains the generated token. Store it as a secret and rotate it if it is exposed. See the [API reference](https://capcom6.github.io/gomvn/) and [`requests.http`](requests.http) for the complete management API examples.
+
 ## Usage
 
-### How to create Java library
+GoMVN exposes repositories as ordinary HTTP paths. Maven clients can use the repository URLs directly once credentials and repository names are configured.
 
-Ensure that your `build.gradle` file contains configuration by this example:
+The examples below use HTTPS because a TLS-terminating proxy is recommended for any non-local deployment.
 
-```gradle
-plugins {
-    id 'maven-publish'
-    id 'java'
-}
+### Publishing with Gradle
+
+This Groovy example uses the standard `SNAPSHOT` suffix to select a repository path and reads credentials from Gradle properties or environment variables:
+
+```groovy
+def repositoryUser = findProperty("gomvnUsername") ?: System.getenv("GOMVN_USERNAME")
+def repositoryToken = findProperty("gomvnToken") ?: System.getenv("GOMVN_TOKEN")
 
 publishing {
     repositories {
         maven {
-            def releasesRepoUrl = "http://my-private-repository.example.com/release"
-            def snapshotsRepoUrl = "http://my-private-repository.example.com/snapshot"
-            name = 'mlj'
-            url = project.version.endsWith('RELEASE') ? releasesRepoUrl : snapshotsRepoUrl
+            name = "gomvn"
+            url = uri(
+                project.version.toString().endsWith("SNAPSHOT")
+                    ? "https://gomvn.example.com/snapshot"
+                    : "https://gomvn.example.com/release"
+            )
             credentials {
-                username 'PUT HERE USERNAME'
-                password 'PUT HERE TOKEN'
+                username = repositoryUser
+                password = repositoryToken
             }
         }
     }
+
     publications {
         maven(MavenPublication) {
-            groupId = 'com.example'
-            artifactId = 'library'
-            version = '1.0.0.RELEASE'
-
             from components.java
+            groupId = "com.example"
+            artifactId = "library"
+            version = project.version
         }
     }
 }
 ```
 
-### How to create Android library
+Do not commit the token. Supply it through a protected Gradle property, environment variable, or CI secret store.
 
-Ensure that your `build.gradle` file contains configuration by this example:
+### Consuming with Gradle
 
-```gradle
-plugins {
-    id 'maven-publish'
-}
+```groovy
+def repositoryUser = findProperty("gomvnUsername") ?: System.getenv("GOMVN_USERNAME")
+def repositoryToken = findProperty("gomvnToken") ?: System.getenv("GOMVN_TOKEN")
 
-afterEvaluate {
-    publishing {
-        repositories {
-            maven {
-                def releasesRepoUrl = "http://my-private-repository.example.com/release"
-                def snapshotsRepoUrl = "http://my-private-repository.example.com/snapshot"
-                name = 'mlj'
-                url = project.version.endsWith('RELEASE') ? releasesRepoUrl : snapshotsRepoUrl
-                credentials {
-                    username 'PUT HERE USERNAME'
-                    password 'PUT HERE TOKEN'
-                }
-            }
-        }
-        publications {
-            maven(MavenPublication) {
-                // Applies the component for the release build variant.
-                from components.release
-
-                groupId = 'com.example'
-                artifactId = 'library'
-                version = '1.0.0.RELEASE'
-            }
-        }
-    }
-}
-```
-
-### How to use your private Maven repository
-
-Append to your `build.gradle`:
-
-```gradle
 repositories {
     mavenCentral()
     maven {
-        url "http://my-private-repository.example.com/release"
+        name = "gomvn"
+        url = uri("https://gomvn.example.com/release")
         credentials {
-            username project.mljMavenUsername
-            password project.mljMavenPassword
+            username = repositoryUser
+            password = repositoryToken
         }
     }
 }
 
 dependencies {
-    implementation "com.example:library:1.0.0.RELEASE"
+    implementation "com.example:library:1.0.0"
 }
 ```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+### Android and Other Clients
 
-<!-- ROADMAP -->
-## Roadmap
+The HTTP repository interface is independent of the build tool. Android projects can publish the component exposed by their Android Gradle Plugin version and consume artifacts from the same repository URLs. For other Maven-compatible clients, use HTTP Basic authentication with the generated username and token.
 
-See the [open issues](https://github.com/capcom6/gomvn/issues) for a full list of proposed features (and known issues).
+## Security
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+- GoMVN serves plain HTTP and does not configure TLS certificates. Terminate HTTPS at a reverse proxy or load balancer.
+- Protect `config.yml`; database DSNs and static S3 credentials are stored as plain values.
+- Treat generated user tokens as secrets. Only token hashes are persisted.
+- Review anonymous access settings before starting the service. `permissions.view: true` and `permissions.deploy: true` bypass repository authentication for those operations.
+- Give deploy users only the repository paths they need and disable deploy access for read-only consumers.
+- Back up both the configured database and artifact storage.
+- Do not expose the management API or admin interface to untrusted networks without additional access controls.
 
-<!-- CONTRIBUTING -->
+## Development
+
+Prerequisites for a local source build:
+
+- Go 1.26 or newer
+- A C compiler when using the default SQLite driver
+- `golangci-lint` for formatting and linting
+- Air if using the optional live-reload target
+
+Common commands:
+
+```bash
+go mod download
+make fmt
+make lint
+make test
+make build
+```
+
+Run the current source tree with SQLite and CGO:
+
+```bash
+cp configs/config.example.yml config.yml
+CGO_ENABLED=1 go run . --config ./config.yml
+```
+
+Generate a local release snapshot with:
+
+```bash
+make release
+```
+
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+1. Open an issue to confirm the intended behavior when it is not already tracked.
+2. Create a focused branch from `master`.
+3. Keep changes scoped and preserve existing project conventions.
+4. Run `make lint`, `make test`, and `go build ./...`.
+5. Open a pull request describing the user-visible behavior and verification performed.
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement". Don't forget to give the project a star! Thanks again!
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+The repository is distributed under the MIT License. See [LICENSE](LICENSE).
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- CONTACT -->
 ## Contact
 
-Project Link: [https://github.com/capcom6/gomvn](https://github.com/capcom6/gomvn)
+- Project and issue tracker: [capcom6/gomvn](https://github.com/capcom6/gomvn)
+- Management API reference: [capcom6.github.io/gomvn](https://capcom6.github.io/gomvn/)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- MARKDOWN LINKS & IMAGES -->
 [contributors-shield]: https://img.shields.io/github/contributors/capcom6/gomvn.svg?style=for-the-badge
 [contributors-url]: https://github.com/capcom6/gomvn/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/capcom6/gomvn.svg?style=for-the-badge
@@ -279,9 +421,3 @@ Project Link: [https://github.com/capcom6/gomvn](https://github.com/capcom6/gomv
 [issues-url]: https://github.com/capcom6/gomvn/issues
 [license-shield]: https://img.shields.io/github/license/capcom6/gomvn.svg?style=for-the-badge
 [license-url]: https://github.com/capcom6/gomvn/blob/master/LICENSE
-[Go.dev]: https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white
-[Go-url]: https://go.dev/
-[Docker.com]: https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white
-[Docker-url]: https://www.docker.com/
-[GORM.io]: https://img.shields.io/badge/GORM-003545?style=for-the-badge&logo=gorm&logoColor=white
-[GORM-url]: https://gorm.io/
